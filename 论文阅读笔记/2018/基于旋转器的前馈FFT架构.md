@@ -66,7 +66,7 @@ $$
   - $φ=0$不需要旋转
   - $φ∈{0,\frac{N}{4},\frac{N}{2},\frac{3N}{4}}$，样本旋转$0°,270°,180°~或~90°$，分别对应于$1,-j,-1和j$
 
-![16点基2DIF-FFT流图](https://github.com/VenciFreeman/Notes/fig/FEEDFORWARD_FFT_HARDWARE_ARCHITECTURES_BASED_ON_ROTATOR_ALLOCATION_fig_1.png)
+![16点基2DIF-FFT流图](https://github.com/VenciFreeman/Notes/blob/master/fig/FEEDFORWARD_FFT_HARDWARE_ARCHITECTURES_BASED_ON_ROTATOR_ALLOCATION_fig_1.png)
 
 ## FFT旋转器的类型及成本
 
@@ -87,7 +87,7 @@ $$
   - 其他旋转
   - 旋转系数的虚实部交换
 
-![16点FFT旋转角度](https://github.com/VenciFreeman/Notes/fig/FEEDFORWARD_FFT_HARDWARE_ARCHITECTURES_BASED_ON_ROTATOR_ALLOCATION_fig_2.png)
+![16点FFT旋转角度](https://github.com/VenciFreeman/Notes/blob/master/fig/FEEDFORWARD_FFT_HARDWARE_ARCHITECTURES_BASED_ON_ROTATOR_ALLOCATION_fig_2.png)
 
 ### 旋转器类型
 
@@ -132,7 +132,7 @@ $$
 - b
   - 由a转换，显示每个阶段的旋转器以及旋转存储器的内容
 
-![16点4并行FFT](https://github.com/VenciFreeman/Notes/fig/FEEDFORWARD_FFT_HARDWARE_ARCHITECTURES_BASED_ON_ROTATOR_ALLOCATION_fig_4.png)
+![16点4并行FFT](https://github.com/VenciFreeman/Notes/blob/master/fig/FEEDFORWARD_FFT_HARDWARE_ARCHITECTURES_BASED_ON_ROTATOR_ALLOCATION_fig_4.png)
 
 ## 针对基-2和基-2<sup>k</sup>的架构
 
