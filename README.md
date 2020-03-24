@@ -14,6 +14,19 @@
   - `年份`：2006
   - [ ] 完成状况：未完成
 
+## HS
+
+> History related notes
+
+- 00：`人类简史`
+  - `创建日期`：2020/03/24
+  - `主讲`：—
+  - `参考`：《[人类简史：从动物到上帝]( https://book.douban.com/subject/25985021/ )》
+  - `作者`：[Yuval Noah Harari]( https://www.ynharari.com/ )
+  - `出版社`：中信出版社
+  - `年份`：2014
+  - [ ] 完成状况：未完成
+
 ## ME
 
 > Microelectronics related notes
