@@ -60,11 +60,18 @@
   - `年份`：2012
   - [x] `已完成`
 
-## T
+## X
 
-> Tutorial related notes.
+> Other notes, such as tutorial related notes, and paper reading notes, etc.
 
-- 00：[`达芬奇教程`]( [https://github.com/VenciFreeman/Notes/tree/master/T00_%E8%BE%BE%E8%8A%AC%E5%A5%87%E6%95%99%E7%A8%8B](https://github.com/VenciFreeman/Notes/tree/master/T00_达芬奇教程) )
+- 00：[`论文阅读笔记`]( [https://github.com/VenciFreeman/Notes/tree/master/T00_%E8%BE%BE%E8%8A%AC%E5%A5%87%E6%95%99%E7%A8%8B](https://github.com/VenciFreeman/Notes/tree/master/X00_论文阅读笔记 )
+  - `创建日期`：2020/02/28
+  - `主讲`：et al.
+  - `参考`：—
+  - `作者`：et al.
+  - `年份`：2020
+  - [ ] `未完成`
+- 01：[`达芬奇教程`]( [https://github.com/VenciFreeman/Notes/tree/master/T00_%E8%BE%BE%E8%8A%AC%E5%A5%87%E6%95%99%E7%A8%8B](https://github.com/VenciFreeman/Notes/tree/master/T00_达芬奇教程) )
   - `创建日期`：2020/03/11
   - `主讲`：Tim (潘天鸿)
   - `参考`：《[一小时上手达芬奇]( https://www.bilibili.com/video/av90173725)》
