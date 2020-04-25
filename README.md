@@ -23,7 +23,7 @@
   - `主讲`：[陈长鑫]( http://dmne.sjtu.edu.cn/dmne/faculty/teacher/chenchangxin/ )
   - `参考`：[*纳米材料和器件导论 (第二版)*]( https://book.douban.com/subject/5921449/ )
   - `作者`：[郭子政](https://baike.baidu.com/item/郭子政/1572612), [时东陆]( https://baike.baidu.com/item/时东陆 )
-  - [ ] `未完成`
+  - [x] `已完成`
 - 01：[`集成电路与微系统封装`]( https://github.com/VenciFreeman/Notes/tree/master/ME01_集成电路与微系统封装) 
   - `创建日期`：2020/02/26
   - `主讲`：[杨卓青]( http://dmne.sjtu.edu.cn/dmne/faculty/teacher/yangzhuoqing/ )
