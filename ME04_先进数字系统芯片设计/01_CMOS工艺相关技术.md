@@ -49,7 +49,7 @@
 
 ### 如何做出反相器
 
-![](https://github.com/VenciFreeman/Notes/blob/master/fig/ME04_chapter01_fig01.jpg)
+![](https://github.com/VenciFreeman/Notes/blob/master/fig/ME04/ME04_chapter01_fig01.jpg)
 
 -  包括一个NMOS晶体管和一个PMOS晶体管
 -  PMOS晶体管只能在n型环境中制造，所以在p型衬底上浅掺杂出n阱
@@ -136,9 +136,9 @@
   - 红色为多晶栅
   - 黑色为接触孔
 
-![](https://github.com/VenciFreeman/Notes/blob/master/fig/ME04_chapter01_fig02.jpg)
+![](https://github.com/VenciFreeman/Notes/blob/master/fig/ME04/ME04_chapter01_fig02.jpg)
 
-![](https://github.com/VenciFreeman/Notes/blob/master/fig/ME04_chapter01_fig03.jpg)
+![](https://github.com/VenciFreeman/Notes/blob/master/fig/ME04/ME04_chapter01_fig03.jpg)
 
 |     阱     | 薄氧化层 (做晶体管的区域) | NMOS管区域 |  PMOS管区域  |
 | :--------: | :-----------------------: | :--------: | :----------: |
@@ -152,7 +152,7 @@
 - 影响晶体管特性，所以把源和漏用金属线贯通
   - 需要用方案3，而不是方案4
 
-![](https://github.com/VenciFreeman/Notes/blob/master/fig/ME04_chapter01_fig04.jpg)
+![](https://github.com/VenciFreeman/Notes/blob/master/fig/ME04/ME04_chapter01_fig04.jpg)
 
 #### 过孔电阻
 
@@ -181,7 +181,7 @@ $$
 R_{gate}=L_{gate}R_{sq,poly}
 $$
 
-![](https://github.com/VenciFreeman/Notes/blob/master/fig/ME04_chapter01_fig05.jpg)
+![](https://github.com/VenciFreeman/Notes/blob/master/fig/ME04/ME04_chapter01_fig05.jpg)
 
 - 线的寄生电容
   - 上下层间电容
@@ -218,9 +218,9 @@ $$
 - p-n结处形成寄生双极晶体管
 - 闩锁-寄生晶体管导通时
 
-![](https://github.com/VenciFreeman/Notes/blob/master/fig/ME04_chapter01_fig06.jpg)
+![](https://github.com/VenciFreeman/Notes/blob/master/fig/ME04/ME04_chapter01_fig06.jpg)
 
-![等效电路和特征曲线](https://github.com/VenciFreeman/Notes/blob/master/fig/ME04_chapter01_fig08.jpg)
+![等效电路和特征曲线](https://github.com/VenciFreeman/Notes/blob/master/fig/ME04/ME04_chapter01_fig08.jpg)
 
 #### 寄生SCR
 
@@ -232,7 +232,7 @@ $$
 
 ##### 保护环
 
-![保护环](https://github.com/VenciFreeman/Notes/blob/master/fig/ME04_chapter01_fig07.jpg)
+![保护环](https://github.com/VenciFreeman/Notes/blob/master/fig/ME04/ME04_chapter01_fig07.jpg)
 
 ### 电压降效应
 
@@ -301,7 +301,7 @@ $$
 - 不能过应力，会影响使用寿命
 - 有相应的国际标准，但不是放之四海皆准
 
-##### 寿命试验评估
+##### 寿命实验评估
 
 - 很多应用要求有寿命预估或寿命评价
 - 一般采用模型速测法：加速等效因子
@@ -311,12 +311,14 @@ $$
 
 - 使用材料瑕疵
   - 树脂中的杂质、金属/陶瓷材料裂痕
+  - 芯片被氧化
 - 工艺尺寸偏差
   - 材料平整度超差，焊球尺寸不一致
 - 加工过程带来瑕疵
   - 气泡、虚焊、搭接短路、密封失误
 - 内部释放物
   - 内部多余物、逐步释放气体
+  - 尤其是真空 (陶瓷)封装
 - 应力不均
   - 热应力、机械应力
 
@@ -324,18 +326,25 @@ $$
 
 #### ESD
 
+> 抗静电
+
 - 所有MOS电路必须防范
+  - 输入端都为薄栅，仅能耐受电源电压的1.5倍左右的电压
 - 一般分防护等级 (500V-15kV)
+- 对于不同电路不一样
+  - 银行卡芯片 (约8kV)
+  - 热插拔U盘 (约10kV)
+  - 一般集成电路 (2k-4kV，因此需要用镊子)
 - 防护电路
 
-![保护环](https://github.com/VenciFreeman/Notes/blob/master/fig/ME04_chapter01_fig09.jpg)
+![保护环]( https://github.com/VenciFreeman/Notes/blob/master/fig/ME04/ME04_chapter01_fig09.jpg )
 
 #### 辐射效应
 
 - 抗总剂量效应
 - 抗单粒子闩锁
 - 抗单粒子击穿
-- 抗单粒子反转
+- 抗单粒子反转 (最严重，影响逻辑功能)
 
 #### 环境影响
 
@@ -343,7 +352,7 @@ $$
 - 温度/湿度/盐雾：根据使用要求确定
 - 过流/浪涌：必要的保护和精细的电路设计
 - 电磁兼容性 (端口)
-  - 防止电压抖动和适应电压波动
+  - 防止电压抖动和适应电压波动 (高频信号干扰主要影响模拟电路)
   - 防止输入毛刺
 
 ### 小结
@@ -370,17 +379,21 @@ $$
 #### 示例
 
 - DIP
-- SOP
 - QFP
 - BGA
+- SOC
 - MCM
   - 快速将CPU连接到一个或两个外部缓存块
   - 价格昂贵，需要已知合格的经过测试的裸露未封装IC
-- 倒装芯片
+- SIP (System in Package，多芯片叠装)
+  - 例如iPhone 4的基带芯片，以及一些U盘Flash芯片，多个芯片集成为一个芯片
+- SOP
+- 倒装芯片 (Flip Chip)
   - 降低信号电感
     - 较短的互连长度
   - 更有效地使用电源
     - 直接在核心供电
+    - 电源和地的管脚球更多
   - 更高的互连密度
     - 更大的可路由区域
   - 较小的包装尺寸
@@ -388,18 +401,29 @@ $$
   - I/O无法控制核心大小
     - 区域阵列放置
     - 可能收缩
-- SIP (System in Package)
 - PoP (封装叠层)
+  - 例如A8芯片，大芯片间夹叠多个小芯片
+
+![保护环]( https://github.com/VenciFreeman/Notes/blob/master/fig/ME04/ME04_chapter01_fig10.jpg )
 
 ### 3D封装
 
-- TSV，减少互联生长
+#### 各种形式
+
+- TSV (Through Silicon Via，硅通孔技术)，减少互联生长
+- C2W (Chip to Wafer)/Wafer Bonding
+- RDL (Redistribution Layer)
+- Micro Bumps/Cu Pillars/BGA/Flip Chip
 
 #### 案例
 
 ##### HMC
 
+- 打穿后共用一套线
+
 ##### HBM
+
+- 带宽更高，每个芯片都引出输出 (典型的TSV)
 
 ##### FPGA
 
