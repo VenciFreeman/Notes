@@ -6,22 +6,36 @@
 
 [TOC]
 
-## Understanding Moore's Law and its impact
+## Understanding Moore's Law and Its Impact
 
 - 1971：4004
 - Moore's law: Enables innovation and cost reductions
-  - ​     Same circuitry ~ half the space
-  - or Twice the circuitry in the ~ same space
-  - =  Optimized by design for best performance / cost
-  - e. g. Chip Layout Complexity in iPhone
-    - A4 (53mm<sup>2</sup> 45nm)
-    - A13 (98mm<sup>2</sup> 7nm)
+  - Power: 35% reduction
+  - Performance: 20% increase
+  - Area: 30-40% reduction
+  - Cost: 15% reduction
+  - Environment Cost
+- Or
+  - Same circuitry ~ half the space
+  - Twice the circuitry in the ~ same space
+  - Optimized by design for best performance / cost
+- e. g. Chip Layout Complexity in iPhone
+  - A4 (53 mm<sup>2</sup> 45 nm)
+  - A5 (122 mm<sup>2</sup> 45 nm) 
+  - A6 (97 mm<sup>2</sup> 32 nm)
+  - A7 (102 mm<sup>2</sup> 28 nm)
+  - A8 (89 mm<sup>2</sup> 20 nm)
+  - A9 (105 mm<sup>2</sup> 16 nm)
+  - A10 (125 mm<sup>2</sup> 16 nm)
+  - A11 (87 mm<sup>2</sup> 10 nm)
+  - A12 (83 mm<sup>2</sup> 7 nm)
+  - A13 (98 mm<sup>2</sup> 7 nm)
 - Market continue to grow
 - steady market expansion
   - Increasing semiconductor penetration in electronics
   - Increasing functionalities and performance
-  - New applications
-  - 
+  - New applications in growth drivers
+  - Demand from high end and low end markets
 - China market continues to grow
 - EDA Companies
   - R&D Centre
@@ -40,42 +54,49 @@
 - Why EDA is important in China
 - Who else has this problem
   - What do I benefit from EDA course if I am not into EDA research or industry
+  - What about Computational finance?
+    - Valuing complex financial instruments, derivatives
+    - High dimensional, nonlinear, statistical integrals
+    - Speed+accuracy matters here, e.g., ~real time decision making
 
 ## What's EDA and its history
 
 - Time Period
 
   - 1950-1965: manual design only.
-  - 1965-1975: layout editors, e. g. place and route tools
-  - 1975-1985: more advanced tools for ICs and PCBs
-  - 1985-1990: First performance-driven tools and parallel optimization algorithms for layout
-  - 1990-2000: First over-the-cell routing, first 3D multilayer placement and routing technique developed
-  - 2000-now: design for manufacturability, optical proximity correction and other techniques emerge at the design-manufacturing interface.
+  - 1965-1975: Layout editors, e.g., place and route tools, first developed for printed circuit boards.
+  - 1975-1985: More advanced tools for ICs and PCBs, with more sophisticated algorithms.
+  - 1985-1990: First performance-driven tools and parallel optimization algorithms for layout; better understanding of underlying theory (graph theory, solution complexity, etc.).
+  - 1990-2000: First over-the-cell routing, first 3D and multilayer placement and routing techniques developed. Automated circuit synthesis and routability-oriented design become dominant. Start of parallelizing workloads. Emergence of physical synthesis.
+  - Design for Manufacturability (DFM), optical proximity correction (OPC), and other techniques emerge at the design-manufacturing interface. Increased reusability of blocks, including intellectual property (IP) blocks. 
 
 - Common EDA terminology
 
-  > System Specification ==> Arch
+  ![]( https://github.com/VenciFreeman/Notes/blob/master/fig/ME03/ME03_chapter02_fig01.jpg )
 
-  - Logic design: mapping the  VHDL / Verilog code to circuit gates / netlist
-  - Physical design: geometrical arrangement of cells and their connections within the IC layout
-  - Physical verification: checks the correctness of the layout design
-    - DRC: Design Rule Checking
-    - LV: Layout vs. Schematic
-    - ERC: Electrical Rule Checking
+  - Logic design: mapping the VHDL/ Verilog code to circuit gates/netlist 
+  - Physical design: geometrical arrangement of cells and their connections within the IC layout. 
+  - Physical verification: checks the correctness of the layout design. 
+    - DRC: Design Rule Checking: Complies with all technology requirements?
+    - LV: Layout vs. Schematic: Is consistent with the original netlist?
+    - ERC: Electrical Rule Checking: Complies with all electrical requirements?
 
 - Simple concept: schematic to layout
 
-  > Standard cells ==>
+![]( https://github.com/VenciFreeman/Notes/blob/master/fig/ME03/ME03_chapter02_fig02.jpg )
 
 - How does things get complicated
 
-- How to draw the layout
+![]( https://github.com/VenciFreeman/Notes/blob/master/fig/ME03/ME03_chapter02_fig03.jpg )
 
+- How to draw the layout
 - VLSI design flow
 
-## What's DFM and its capabilities
+![]( https://github.com/VenciFreeman/Notes/blob/master/fig/ME03/ME03_chapter02_fig04.jpg )
 
-Challenges in Semiconductor Industry
+## CMOS Challenges and Its Impact on Yield
+
+### Challenges in Semiconductor Industry
 
 #### Economy
 
@@ -93,11 +114,13 @@ Challenges in Semiconductor Industry
 #### Technology
 
 - Manufacturing
-- Design
+- Design Complexity
   - Increasing process steps & design rules
   - Increasing yield loss due to process variation
 
 ### Define the type of yields?
+
+![]( https://github.com/VenciFreeman/Notes/blob/master/fig/ME03/ME03_chapter02_fig05.jpg )
 
 ### What cause poor functional yields?
 
@@ -125,6 +148,8 @@ Challenges in Semiconductor Industry
 
 ### Yield Loss Mechanisms
 
+![]( https://github.com/VenciFreeman/Notes/blob/master/fig/ME03/ME03_chapter02_fig06.jpg )
+
 ### Root Causes?
 
 #### Foundries
@@ -148,16 +173,56 @@ Challenges in Semiconductor Industry
 - Lack of proper design-layout guided tools to ensure robust layout
 - Lack of comprehensive verification tools for design sign-off
 
-## What's DFM & it's capabilities?
+## What's DFM & It's Capabilities?
+
+```mermaid
+graph TB
+A[Design];B[Process];C[Tools];D((Yields));
+D---A;D---B;D---C;
+```
+
+![Economics of DFM]( https://github.com/VenciFreeman/Notes/blob/master/fig/ME03/ME03_chapter02_fig07.jpg )
+
+### What is the role of DFM in EDA?
+
+- Circuit & Physical Automation
+- Circuit Functional Verification
+- Physical Verification
+- Physical Design Optimization
+- DFM Aware Automation Circuit & Physical Automation
+- DFM Compliant Verification & Circuit Functional Verification
+- DFM Compliant Verification & Physical Verification
+- DFM Aware Optimization & Physical Design Optimization
+
+#### or
+
+- Ground Rules
+- Recommended Rules
+- Electrical Rules
+
+### Design vs Manufacturing
+
+![Economics of DFM]( https://github.com/VenciFreeman/Notes/blob/master/fig/ME03/ME03_chapter02_fig08.jpg )
+
+### Foundries Assessment on DFM Value
+
+![Economics of DFM]( https://github.com/VenciFreeman/Notes/blob/master/fig/ME03/ME03_chapter02_fig09.jpg )
 
 ### Characteristics of DFM
 
-- Manufacturing yield
-  - Root Cause: Global | Local (~1μm)
+- Manufacturing Yield
+  - Root Cause: Global | Local (~1µm)
   - Variation: Systematic | Random
 - Type of DFM
-  - Physical DFM ==> Functional
-- Research / Implementation Techniques
+  - Physical DFM ==> Functional Yield
+    - Identifying physical weak points (Verification)
+    - Improving the physical design (Optimization)
+  - Electrical Effects ==> Parametric Yield
+    - Identifying electrical performance deviation (Verification)
+    - Improve the circuit and physical design (Optimization)
+- Research / Implementation Techniques:
+  - Rule/Heuristic
+  - Model/Simulation based
 
 ### Industrial DFM Applications
 
@@ -165,9 +230,3 @@ Challenges in Semiconductor Industry
 - Printability
 - Random
 - Parametric
-
-## Why CMOS Technology requires DFM
-
-## My past works in GLOBALFOUNDRIES
-
-## University Program & Design Contest
