@@ -110,7 +110,7 @@ A-->B;A-->C;B-->D;C-->D;D-->E;E-->F;
 
 #### 半经典运输模型的有效性
 
-![]( https://github.com/VenciFreeman/Notes/blob/master/fig/ME05/ME05_chapter01_fig01.jpg )
+![]( ../fig/ME05/ME05_chapter01_fig01.jpg )
 
 - 漂移扩散模型
   - 适用于L~G~ ＞ 0.5 μm的器件
@@ -249,7 +249,7 @@ $$
 
 ###### Pearson模型
 
-![]( https://github.com/VenciFreeman/Notes/blob/master/fig/ME05/ME05_chapter01_fig02.jpg )
+![]( ../fig/ME05/ME05_chapter01_fig02.jpg )
 
 ##### 蒙特卡洛技术
 
@@ -335,7 +335,7 @@ ATLAS --> Tonyplot
     - 包括ATLAS的各种工具包括
       - S-PISCES, BLAZE, GIGA, TFT, LUMINOUS, LASER, MIXEMODE, DEVICE3D, INTERCONNECT3D, THERMAL3D
 
-![]( https://github.com/VenciFreeman/Notes/blob/master/fig/ME05/ME05_chapter01_fig03.jpg )
+![]( ../fig/ME05/ME05_chapter01_fig03.jpg )
 
 `指令的输入通过deckbuild软件窗口传送至仿真器`
 

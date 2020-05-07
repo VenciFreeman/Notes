@@ -72,7 +72,7 @@
 
 - Common EDA terminology
 
-  ![]( https://github.com/VenciFreeman/Notes/blob/master/fig/ME03/ME03_chapter02_fig01.jpg )
+  ![]( ../fig/ME03/ME03_chapter02_fig01.jpg )
 
   - Logic design: mapping the VHDL/ Verilog code to circuit gates/netlist 
   - Physical design: geometrical arrangement of cells and their connections within the IC layout. 
@@ -83,16 +83,16 @@
 
 - Simple concept: schematic to layout
 
-![]( https://github.com/VenciFreeman/Notes/blob/master/fig/ME03/ME03_chapter02_fig02.jpg )
+![]( ../fig/ME03/ME03_chapter02_fig02.jpg )
 
 - How does things get complicated
 
-![]( https://github.com/VenciFreeman/Notes/blob/master/fig/ME03/ME03_chapter02_fig03.jpg )
+![]( ../fig/ME03/ME03_chapter02_fig03.jpg )
 
 - How to draw the layout
 - VLSI design flow
 
-![]( https://github.com/VenciFreeman/Notes/blob/master/fig/ME03/ME03_chapter02_fig04.jpg )
+![]( ../fig/ME03/ME03_chapter02_fig04.jpg )
 
 ## CMOS Challenges and Its Impact on Yield
 
@@ -120,7 +120,7 @@
 
 ### Define the type of yields?
 
-![]( https://github.com/VenciFreeman/Notes/blob/master/fig/ME03/ME03_chapter02_fig05.jpg )
+![]( ../fig/ME03/ME03_chapter02_fig05.jpg )
 
 ### What cause poor functional yields?
 
@@ -148,7 +148,7 @@
 
 ### Yield Loss Mechanisms
 
-![]( https://github.com/VenciFreeman/Notes/blob/master/fig/ME03/ME03_chapter02_fig06.jpg )
+![]( ../fig/ME03/ME03_chapter02_fig06.jpg )
 
 ### Root Causes?
 
@@ -181,7 +181,7 @@ A[Design];B[Process];C[Tools];D((Yields));
 D---A;D---B;D---C;
 ```
 
-![Economics of DFM]( https://github.com/VenciFreeman/Notes/blob/master/fig/ME03/ME03_chapter02_fig07.jpg )
+![Economics of DFM]( ../fig/ME03/ME03_chapter02_fig07.jpg )
 
 ### What is the role of DFM in EDA?
 
@@ -202,11 +202,11 @@ D---A;D---B;D---C;
 
 ### Design vs Manufacturing
 
-![Economics of DFM]( https://github.com/VenciFreeman/Notes/blob/master/fig/ME03/ME03_chapter02_fig08.jpg )
+![Economics of DFM]( ../fig/ME03/ME03_chapter02_fig08.jpg )
 
 ### Foundries Assessment on DFM Value
 
-![Economics of DFM]( https://github.com/VenciFreeman/Notes/blob/master/fig/ME03/ME03_chapter02_fig09.jpg )
+![Economics of DFM]( ../fig/ME03/ME03_chapter02_fig09.jpg )
 
 ### Characteristics of DFM
 

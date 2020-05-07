@@ -53,7 +53,7 @@
 
 ### 如何做出反相器
 
-![](https://github.com/VenciFreeman/Notes/blob/master/fig/ME04/ME04_chapter01_fig01.jpg)
+![](../fig/ME04/ME04_chapter01_fig01.jpg)
 
 -  包括一个NMOS晶体管和一个PMOS晶体管
 -  PMOS晶体管只能在n型环境中制造，所以在p型衬底上浅掺杂出n阱
@@ -140,9 +140,9 @@
   - 红色为多晶栅
   - 黑色为接触孔
 
-![](https://github.com/VenciFreeman/Notes/blob/master/fig/ME04/ME04_chapter01_fig02.jpg)
+![](../fig/ME04/ME04_chapter01_fig02.jpg)
 
-![](https://github.com/VenciFreeman/Notes/blob/master/fig/ME04/ME04_chapter01_fig03.jpg)
+![](../fig/ME04/ME04_chapter01_fig03.jpg)
 
 |     阱     | 薄氧化层 (做晶体管的区域) | NMOS管区域 |  PMOS管区域  |
 | :--------: | :-----------------------: | :--------: | :----------: |
@@ -162,7 +162,7 @@
 - 影响晶体管特性，所以把源和漏用金属线贯通
   - 需要用方案3，而不是方案4 (大孔工艺不精确)
 
-![](https://github.com/VenciFreeman/Notes/blob/master/fig/ME04/ME04_chapter01_fig04.jpg)
+![](../fig/ME04/ME04_chapter01_fig04.jpg)
 
 #### 过孔电阻
 
@@ -191,7 +191,7 @@ $$
 R_{gate}=L_{gate}R_{sq,poly}
 $$
 
-![](https://github.com/VenciFreeman/Notes/blob/master/fig/ME04/ME04_chapter01_fig05.jpg)
+![](../fig/ME04/ME04_chapter01_fig05.jpg)
 
 - 线的寄生电容
   - 上下层间电容
@@ -230,9 +230,9 @@ $$
 - 闩锁-寄生晶体管导通时
 - 正反馈形成闩锁，会导致电路的失效甚至烧毁芯片
 
-![](https://github.com/VenciFreeman/Notes/blob/master/fig/ME04/ME04_chapter01_fig06.jpg)
+![](../fig/ME04/ME04_chapter01_fig06.jpg)
 
-![等效电路和特征曲线](https://github.com/VenciFreeman/Notes/blob/master/fig/ME04/ME04_chapter01_fig08.jpg)
+![等效电路和特征曲线](../fig/ME04/ME04_chapter01_fig08.jpg)
 
 #### 寄生SCR
 
@@ -244,7 +244,7 @@ $$
 
 ##### 保护环
 
-![保护环](https://github.com/VenciFreeman/Notes/blob/master/fig/ME04/ME04_chapter01_fig07.jpg)
+![保护环](../fig/ME04/ME04_chapter01_fig07.jpg)
 
 ### 电压降效应
 
@@ -349,7 +349,7 @@ $$
   - 一般集成电路 (2k-4kV，因此需要用镊子)
 - 防护电路
 
-![保护环]( https://github.com/VenciFreeman/Notes/blob/master/fig/ME04/ME04_chapter01_fig09.jpg )
+![保护环]( ../fig/ME04/ME04_chapter01_fig09.jpg )
 
 #### 辐射效应
 
@@ -425,7 +425,7 @@ $$
 - PoP (封装叠层)
   - 例如A8芯片，大芯片间夹叠多个小芯片
 
-![保护环]( https://github.com/VenciFreeman/Notes/blob/master/fig/ME04/ME04_chapter01_fig10.jpg )
+![保护环]( ../fig/ME04/ME04_chapter01_fig10.jpg )
 
 ### 3D封装
 
