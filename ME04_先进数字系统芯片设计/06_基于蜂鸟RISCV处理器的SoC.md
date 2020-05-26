@@ -13,18 +13,28 @@
 
 ## 简介
 
+### 指令集
+
+> Instruction Set Architecture
+
+|     CPU架构     | IBM 701 | CDC 6600 |  IBM 360  | DEC PDP-8 | Intel 8008 |   Motorola 6800    |      DEC VAX      | Inerl 8086 |
+| :-------------: | :-----: | :------: | :-------: | :-------: | :--------: | :----------------: | :---------------: | :--------: |
+|  **诞生时间**   |  1953   |   1963   |   1964    |   1965    |    1972    |        1974        |       1977        |    1978    |
+| **Intel 80386** | **ARM** | **MIPS** | **SPARC** | **Power** | **Alpha**  | **HP/Intel IA-64** | **AMD64 (EMT64)** | **RISCV**  |
+|      1985       |  1985   |   1985   |   1987    |   1992    |    1992    |        2001        |       2003        |    2010    |
+
 ### RISCV
 
 - 2010年发源于加州大学伯克利分校
   - 不受现有处理器架构复杂性和相关知识产权的限制
   - 全新的，简单且开发免费的指令集架
 - 目标
-  - 完全开放，可自由使用
-  - 真正适合软件实现且稳定
+  - 完全开放，可自由使用 (包括商用)
+  - 成为一种真正适合软件实现且稳定的标准指令集架构
 
 ### 深入理解ISA
 
-> 介于软件与硬件之间
+> 介于软件与CPU核心之间
 
 - 数据类型
 - 存储模型
@@ -395,4 +405,259 @@ HBird-E203-SoC开源项目是以Freedom E310 SoC (SiFive公司开源项目)为�
   - 每个读/写操作都会在地址通道上产生地址
   - 不支持乱序返回乱序完成，反馈通道必须按顺序返回结果
 
+#### ICB总线信号
+
+|   通道   |            功能            | 方向 | 宽度 |    信号名     |                介绍                |
+| :------: | :------------------------: | :--: | :--: | :-----------: | :--------------------------------: |
+| 命令通道 | 主设备向从设备发起读写请求 | 输出 |  1   | icb_cmd_valid |   主设备向从设备发送读写请求信号   |
+| 命令通道 | 主设备向从设备发起读写请求 | 输出 |  DW  | icb_cmd_addr  |              读写地址              |
+| 命令通道 | 主设备向从设备发起读写请求 | 输出 |  1   | icb_cmd_read  |          读或写操作的指示          |
+| 命令通道 | 主设备向从设备发起读写请求 | 输出 |  DW  | icb_cmd_wdata |            写操作的数据            |
+| 命令通道 | 主设备向从设备发起读写请求 | 输出 | DW/8 | icb_cmd_wmask |          写操作的字节掩码          |
+| 命令通道 | 主设备向从设备发起读写请求 | 输入 |  1   | icb_cmd_ready |   从设备向主设备返回读写接受信号   |
+| 反馈通道 | 从设备向主设备返回读写结果 | 输入 |  1   | icb_rsp_valid | 从设备向主设备发送读写反馈请求信号 |
+| 反馈通道 | 从设备向主设备返回读写结果 | 输入 |  DW  | icb_rsp_rdata |            读反馈的数据            |
+| 反馈通道 | 从设备向主设备返回读写结果 | 输入 |  1   |  icb_rsp_err  |        读或写反馈的错误标志        |
+| 反馈通道 | 从设备向主设备返回读写结果 | 输出 |  1   | icb_rsp_ready | 主设备向从设备返回读写反馈接受信号 |
+
+#### ICB典型写操作
+
+<img src="..\fig\ME04\ME04_chapter06_fig16.jpg" style="zoom:80%;" />
+
+#### ICB总线硬件实现
+
+##### 一主多从
+
+- 通过地址区间选择分发通道
+- 支持多个滞外交易
+
+##### 多主一从
+
+- 多输入进行仲裁 (轮询或优先级)
+- 支持多个滞外交易
+
+<img src="..\fig\ME04\ME04_chapter06_fig17.jpg" style="zoom:80%;" />
+
+- 通过“一主多从”和“多主一从”进行有效组合
+
+<img src="..\fig\ME04\ME04_chapter06_fig18.jpg" style="zoom:80%;" />
+
+### BIU
+
+> Bus Interface Unit
+
+- BIU主要负责接受来自IFU和LSU单元的存储器访问请求，并使用标准的ICB接口，通过判断其访问的地址区间来访问外部不同接口
+  - 快速IO接口
+  - 私有外设接口
+  - 系统存储接口
+  - CLINT接口
+  - PLIC接口
+
+<img src="..\fig\ME04\ME04_chapter06_fig19.jpg" style="zoom:80%;" />
+
+#### BIU微架构
+
+- 两组输入：IFU、LSU (高优先级)
+- 通过Ping-Pong Buffer切断外界与处理器内部之间的时序路径
+- ICB汇合和分发模块的FIFO深度默认配置为1
+- 若IFU访问了设备区间，则直接通过反馈通道返回错误标志
+
+<img src="..\fig\ME04\ME04_chapter06_fig20.jpg" style="zoom:80%;" />
+
+### 中断异常概述
+
+<img src="..\fig\ME04\ME04_chapter06_fig21.jpg" style="zoom:80%;" />
+
+- 中断机制和异常机制即在中断和异常发生时，处理器将暂停当前正在执行的程序，转而执行中断和异常处理程序，返回时处理器恢复之前被执行的程序
+- 由于对于处理器而言中断和异常的处理机制基本上一样，所以合称广义异常
+  - 同步异常，其原因可以精确定位到某一条执行指令
+  - 异步异常，每次发生时指令的PC可能不一样，例如中断便时一种异步异常
+    - 精确异步异常，在响应异常后的处理器状态能够精确反映为某一条指令的边界
+    - 非精确异步异常，在响应异常后的处理器状态无法精确反映为某一条指令的边界
+
+#### RISC-V的中断
+
+- External Interrupt
+  - 中断源自处理器外部，如GPIO等
+  - PLIC (Platform Level Interrupt Controller)用于多个外部中断源的管理
+  - mie寄存器可对其进行屏蔽和mip寄存器可反映其等待标志
+- Timer Interrupt
+  - 中断源自计时器
+  - 中断是否产生由64-bit 寄存器mtime和mtimecamp的值相比较而决定 (CLINT模块)
+  - mie寄存器可对其进行屏蔽和mip寄存器可反映其等待标志
+- Software Interrupt
+  - 中断源自软件触发
+  - 中断是否产生由msip的值决定 (CLINT模块)
+  - mie寄存器可对其进行屏蔽和mip寄存器可反映其等待标志
+- Debug Interrupt
+  - 此中断专用于实现调试器
+
+#### RISC-V架构的中断优先级与中断嵌套
+
+- 中断优先级：外部中断 > 软件中断 > 计时器中断
+- 多个外部中断的优先级由PLIC控制
+- RISC-V定义的默认硬件机制在进入异常后，中断会被全局关闭，无法响应新的中断，因此需要使用软件的方法或者用户实现自定义的硬件去支持中断嵌套功能
+- 在中断嵌套的过程中，软件需要注意保存上下文和CSR相关寄存器至堆栈
+
+##### RISC-V架构的中断和异常
+
+|         类型          |       名称       |                             全称                             |                        描述                        |
+| :-------------------: | :--------------: | :----------------------------------------------------------: | :------------------------------------------------: |
+|          CSR          |      mtvec       | 机器模式异常入口基地址寄存器 (Machine Trap-Vector Base-Address Register) |              定义进入异常的程序PC地址              |
+|          CSR          |      mcause      |       机器模式异常原因寄存器 (Machine Cause Register)        |                 反映进入异常的原因                 |
+|          CSR          | mtval (mbadaddr) |      机器模式异常值寄存器 (Machine Trap Value Register)      |                 反映进入异常的信息                 |
+|          CSR          |       mepc       |   机器模式异常PC寄存器 (Machine Exception Program Counter)   |               用于保存异常的返回地址               |
+|          CSR          |     mstatus      |         机器模式状态寄存器 (Machine Status Register)         | mstatus寄存器中的MIE域和MPIE域用于反映中断全局使能 |
+|          CSR          |       mie        | 机器模式中断使能寄存器 (Machine Interrupt Enable Registers)  |           用于控制不同类型中断的局部使能           |
+|          CSR          |       mip        | 机器模式中断等待寄存器 (Machine Interrupt Pending Registers) |             反映不同类型中断的等待状态             |
+| Memory address mapped |      mtime       |      机器模式计时器寄存器 (Machine-mode timer register)      |                   反映计时器的值                   |
+| Memory address mapped |     mtimecmp     | 机器模式计时器比较值寄存器 (Machine-mode timer compare register) |                  配置计时器比较值                  |
+| Memory address mapped |       msip       | 机器模式软件中断等待寄存器 (Machine-mode Software InterruptPending Register) |              用以产生或者清除软件中断              |
+| Memory address mapped |       PLIC       |                     PLIC的所有功能寄存器                     |                PLIC的所有功能寄存器                |
+
+#### E203处理器的中断接口
+
+- 在处理器顶层接口中有4根中断输入信号，分别是软件中断、计时器中断、外部中断和调试中断
+  - CLINT模块产生一根软件中断信号和一根计时器中断信号， 通给蜂鸟E203处理器
+  - PLIC模块接入多个外部中断源将其仲裁后生成一根外部中断信号， 通给蜂鸟E203处理器
+  - SoC层面的调试模块生成一根调试中断，通给蜂鸟E203处理器核
+  - 所有的中断信号均由蜂鸟E203处理器核的交付模块进行处理
+
+#### CLINT
+
+> Core Local Interrupts Controller
+
+- CLINT是一个存储器地址映射的模块，挂载在蜂鸟E203 BIU上
+  - 软件中断：msip寄存器最低位，软件写1产生软件中断，写0清除该中断
+  - 计时器中断：mtime ≥ mtimecmp时产生计时器中断，软件可改写mtimecmp的值 (大于mtime)来清除该中断
+- 注：CLINT计时器根据低速输入节拍信号 (来自电源常开域)进行计时，上电后默认一直计数，可通过蜂鸟E203自定义CSR寄存器mcounterstop来关闭
+
+|    地址     | 寄存器名称 |      功能描述      |
+| :---------: | :--------: | :----------------: |
+| 0x0200_0000 |    msip    |    生成软件中断    |
+| 0x0200_4000 |  mtimecmp  | 配置计时器的比较值 |
+| 0x0200_BFFB |   mtime    |   反映计时器的值   |
+
+#### PLIC
+
+> Platform Level Interrupt Controller
+
+- PLIC是一个存储器地址映射的模块，挂载在蜂鸟E203 BIU上
+
+<img src="..\fig\ME04\ME04_chapter06_fig22.jpg" style="zoom:80%;" />
+
+| PLIC源中断号 |        来源         |
+| :----------: | :-----------------: |
+|      0       | 预留为表示没有中断  |
+|              |       wdogcmp       |
+|      2       |       rtccmp        |
+|     3, 4     |    uart0, uart1     |
+|   5, 6, 7    | qspi0, qspi1, qspi2 |
+|    8...39    |   gpio0...gpio31    |
+|   40---43    | pwm0cmp0...pwm0cmp3 |
+|   44---47    | pwm1cmp0...pwm1cmp3 |
+|   48---51    | pwm2cmp0...pwm2cmp3 |
+
 ## 开发环境
+
+### 蜂鸟E203调试机制的实现
+
+- 处理器对于运行于其上的软件程序提供调试能力是至关重要的
+- 调试机制是个非常复杂的软硬件协作机制，软硬件的实现难度很大
+- 对于处理器的调试功能而言，常用的两种是“交互式调试”和“追踪调试”
+  - 交互式调试 (Interactive Debug)
+    - 最常见的调试功能
+    - 调试器软件 (如GDB)能够直接对处理器取得控制权，进而对其以一种交互方式进行调试
+    - 缺点是对处理器的运行具有打扰性
+  - 追踪调试 (Trace Debug)
+    - 调试器只跟踪记录处理器核执行过的所有程序指令，而不会打断干扰处理器的执行过程
+    - 相比交互式调试的实现难度更大，硬件开销也更大
+
+<img src="..\fig\ME04\ME04_chapter06_fig23.jpg" style="zoom:80%;" />
+
+- 蜂鸟E203的调试机制的硬件实现调试机制如下 (未支持跟踪调试)
+  - 在调试主机上通过GDB设置某行程序的断点
+  - 修改存储器中断点处PC地址的指令，将其替换为ebreak
+  - 当执行到ebreak指令时，进入调试模式的异常处理程序 (一段在Debug-Rom中定义的固定程序)
+  - 主机端的GDB软件一直在检测调试模块，得知处理器核已经停在了断点处时，便把对应的信息显示在GDB界面上
+  - 若要读取某个寄存器的值，则通过GDB对调试模块下达命令
+    - 调试模块便开始对处理器内核进行控制，将寄存器值读出，主机端GDB在监测调试模块状态时得知此信息，便显示在其界面上
+  - 当希望退出调试模式，则可以调用dret指令来触发
+
+- DTM (Debug Transport Module)
+  - 在蜂鸟E203处理器中DTM主要是将JTAG标准接口转换成为内部的调试总线 (Debug Bus)
+    - 主要是使用状态机对JTAG协议进行解析转换成调试总线
+    - 由于DTM模块处于JTAG时钟域，与调试总线要访问的调试模块不属于同一个时钟域，因此需要被同步
+- 调试模块 (Debug Module)
+  - 实现了RISC-V调试文档“0.11版本”中定义的若干寄存器、Debug-ROM和Debug-RAM
+    - 这些资源既可以被调试总线访问到，也可以被系统存储总线访问到
+  - Debug-ROM包含了处理器进入调试模式下需要执行的异常处理程序
+  - Debug-RAM主要在运行Debug-ROM中固定异常处理程序时作为数据段使用，用于存放
+    一些临时数据和中间数据
+
+#### 调试机制指令的实现
+
+- ebreak：触发处理器进入异常模式 (调试模式)
+- 调试中断一旦被接收，便会冲刷流水线，处理器PC跳转到0x800地址
+  - CSR寄存器dpc的值更新为当前正在执行的指令PC
+  - CSR寄存器dcsr的cause域值更新为引发进入调试模式的触发原因
+- dret：触发处理器退出异常模式 (调试模式)
+- 被当作一种跳转指令来执行，跳转PC为CSR寄存器dpc的值
+- 将dcsr寄存器中的cause域清除
+
+### RISC-V软件工具链
+
+> RISC-V软件工具链由开源社区维护，可通过RISC-V基金会网站找到相关信息并下载
+
+- riscv-tools (ISA Simulator and Tests)
+  - riscv-isa-sim：基于C/C++开发的指令集模拟器“Spike”
+  - riscv-openocd：基于OpenOCD的RISC-V调试器软件
+  - riscv-opcodes：RISC-V操作码信息转换脚本
+  - riscv-tests：一组RISC-V指令集测试用例
+  - riscv-pk：RISC-V可执行程序运行环境软件，同时提供最简单的bootloader
+- riscv-gnu-toolchain
+  - riscv-gcc：GCC 编译器
+  - riscv-binutils：二进制工具 (链接器，汇编器等)
+  - riscv-gdb：GDB调试工具
+  - riscv-glibc：GNU C标准库实现
+  - riscv-newlib：开源C标准库，主要用于嵌入式系统
+  - riscv-qemu：支持RISC-V 的QEMU模拟器
+
+#### E203的测试平台
+
+>在e200_opensource项目中创建了一个简单的由Verilog编写的TestBench测试平台
+
+- riscv-tests是由RISC-V架构开发者维护的开源项目，包含一些测试处理器是否符合指令集架构定义的测试程序，均由汇编语言编写
+- e200_opensource项目中riscv-tools 下的riscv-tests目录克隆了原始riscvtests项目，并在其基础上添加了更多测试用例，且生成更多log文
+
+##### 主要功能
+
+- 例化DUT文件，生成clock和reset信号
+- 初始化ITCM
+  - 根据运行命令解析出测试用例名称，并使用Verilog的readmemh函数读入相应的文件内容，然后使用其内容初始化ITCM
+- 测试结果分析
+  - 在运行结束后分析该测试用例执行结果，对x3寄存器的值进行判断，若其值为1，则通过测试，向终端输出PASS字样，否则输出FAIL字样
+
+#### HBird-E-SDK
+
+- HBird-E-SDK一个基于Linux环境的针对蜂鸟E203 SoC进行嵌入式软件开发的平台，是以SiFive公司开源的Freedom-E-SDK为蓝本，在其基础上进行的二次开发
+
+```verilog
+title= "bird-e-sdk"
+bsp 					  // 存放板级支持包的目录
+	hbird-e200 		// 存放蜂鸟E203的BSP文件
+		env 				// 存放一些基本的支持性文件
+		drivers 		// 存放底层设备驱动文件
+		include 		// 存放一些头文件
+		stubs 			// 存放移植newlib的底层桩函数
+		tools 			// 存放一些工具脚本文件
+software 				// 存放示例程序的源代码
+ 	hello_world 	// hello_world示例程序
+	demo_gpio 		// GPIO示例程序
+	demo_iasm 		// 内嵌汇编示例程序
+ 	dhrystone 		// Dhrystone跑分程序
+ 	coremark 			// Coremark跑分程序
+ 	FreeRTOS 			// FreeRTOS示例程序
+prebuilt_tools 	// 存放工具链的目录
+Makefile 				// 主Makefile文件
+```
