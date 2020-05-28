@@ -337,7 +337,7 @@
 
   <img src="..\fig\ME04\ME04_chapter06_fig11.jpg" style="zoom:80%;" />
 
-  - 指令存储器
+  - 紧耦合指令存储器
   - 64位单口SRAM，大小和基地址可配 (config.v)
   - IFU>LSU>外部访问 (优先级)
 
@@ -377,17 +377,45 @@ HBird-E203-SoC开源项目是以Freedom E310 SoC (SiFive公司开源项目)为�
   - 连接外部调试器与内部调试模块
 - Debug模块
   - 用于支持外部JTAG通过该模块调试处理器核
-- Quad-SPI Flash
-  - 用于连接外部Flash的QSPI接口
-- GPIO (32个)
-- QSPI (2个)
-- UART (2个)
-- PWM (3个)
-- 常开域
+- ~~Quad-SPI Flash~~
+  - ~~用于连接外部Flash的QSPI接口~~
+- ~~GPIO (32个)~~
+- ~~QSPI (2个)~~
+- ~~UART (2个)~~
+- ~~PWM (3个)~~
+- ~~常开域~~
   - LCLCGEN：低速时钟
   - WatchDog：看门狗计时器
   - RTC：实时计数器
   - PMU：电源管理
+
+### 内存映射
+
+#### SoC地址分配
+
+|     总线分组     |           组件            |        地址区间         |                             描述                             |
+| :--------------: | :-----------------------: | :---------------------: | :----------------------------------------------------------: |
+|     Core直属     |           CLINT           | 0x0200_0000~0x0200_FFFF |              核本地中断控制，模块寄存器地址区间              |
+|     Core直属     |           PLIC            | 0x0C00_0000~0x0CFF_FFFF |              平台级中断控制，模块寄存器地址区间              |
+|     Core直属     |           IMCM            | 0x8000_0000~0x8001_FFFF |                         ITCM地址区间                         |
+|     Core直属     |           DTCM            | 0x9000_0000~0x8001_FFFF |                         DTCM地址区间                         |
+| 系统存储总线接口 |       Debug Module        | 0x0000_0000~0x0000_0FFF |       主要用于调试器使用，普通软件程序不应该使用此区间       |
+| 系统存储总线接口 |            ROM            | 0x0000_1000~0x0000_1FFF | 开源的E203项目由于是FPGA原型，因此Mask-ROM代码为一行模型/在本SoC中考虑将其固化成为逻辑，而不是真正使用ROM IP |
+| 系统存储总线接口 | Off-Chip QSPI0 Flash Read | 0x2000_0000~0x3FFF_FFFF |                  外部SPI Flash只读地址区间                   |
+| 私有设备总线接口 |         Always-On         | 0x1000_0000~0x1000_7FFF |               包含PMU, RTC, WatchDog, LCLKGEN                |
+| 私有设备总线接口 |          HCLKGEN          | 0x1000_8000~0x1000_8FFF |                       高速时钟生成模块                       |
+|                  |           GPIO            | 0x1001_2000~0x1001_2FFF |                         GPIO地址区间                         |
+|                  |           UART0           | 0x1001_3000~0x1001_3FFF |                    第一个UART模块地址区间                    |
+|                  |           QSPI0           | 0x1001_4000~0x1001_4FFF |                    第一个QSPI模块地址区间                    |
+|                  |           PWM0            | 0x1001_5000~0x1001_5FFF |                    第一个PWM模块地址区间                     |
+|                  |           UART1           | 0x1002_3000~0x1002_3FFF |                    第二个UART模块地址区间                    |
+|                  |           QSPI1           | 0x1002_4000~0x1002_4FFF |                    第二个QSPI模块地址区间                    |
+|                  |           PWM1            | 0x1002_5000~0x1002_5FFF |                    第二个PWM模块地址区间                     |
+|                  |           QSPI2           | 0x1003_4000~0x1003_4FFF |                    第三个QSPI模块地址区间                    |
+|                  |           PWM2            | 0x1003_5000~0x1003_5FFF |                    第三个PWM模块地址区间                     |
+|                  |        I2C Master         | 0x1004_2000~0x1004_2FFF |                          IC2 Master                          |
+
+\* 其他地址区间：上表中未用到的地址区间，均为写忽略，读返回0
 
 ### 自定义总线协议ICB
 
@@ -420,9 +448,85 @@ HBird-E203-SoC开源项目是以Freedom E310 SoC (SiFive公司开源项目)为�
 | 反馈通道 | 从设备向主设备返回读写结果 | 输入 |  1   |  icb_rsp_err  |        读或写反馈的错误标志        |
 | 反馈通道 | 从设备向主设备返回读写结果 | 输出 |  1   | icb_rsp_ready | 主设备向从设备返回读写反馈接受信号 |
 
-#### ICB典型写操作
+#### 写操作同一周期返回结果
 
-<img src="..\fig\ME04\ME04_chapter06_fig16.jpg" style="zoom:80%;" />
+- 主设备向从设备通过ICB的Command Channel发送写操作请求 (icb_cmd_read为低)
+  - 从设备立即接收该请求 (icb_cmd_ready为高)
+- 从设备在同一个周期返回读结果且结果正确 (icb_rsp_err为低)
+  - 主设备立即接收该结果 (icb_rsp_ready为高)
+
+<img src="..\fig\ME04\ME04_chapter06_fig24.jpg" style="zoom:80%;" />
+
+#### 读操作下一周期返回结果
+
+- 主设备向从设备通过ICB的Command Channel发送读操作请求 (icb_cmd_read为高)
+  - 从设备立即接收该请求 (icb_cmd_ready为高)
+- 从设备在下一个周期返回读结果且结果正确 (icb_rsp_err为低)
+  - 主设备立即接收该结果 (icb_rsp_ready为高)
+
+<img src="..\fig\ME04\ME04_chapter06_fig25.jpg" style="zoom:80%;" />
+
+#### 写操作下一周期返回结果
+
+- 主设备向从设备通过ICB的Command Channel发送写操作请求 (icb_cmd_read为低)
+  - 从设备立即接收该请求 (icb_cmd_ready为高)
+- 从设备在下一个周期返回读结果且结果正确 (icb_rsp_err为低)
+  - 主设备立即接收该结果 (icb_rsp_ready为高)
+
+<img src="..\fig\ME04\ME04_chapter06_fig26.jpg" style="zoom:80%;" />
+
+#### 读操作四个周期返回结果
+
+- 主设备向从设备通过ICB的Command Channel发送读操作请求 (icb_cmd_read为高)
+  - 从设备立即接收该请求 (icb_cmd_ready为高)
+- 从设备在四个周期后返回读结果且结果正确 (icb_rsp_err为低)
+  - 主设备立即接收该结果 (icb_rsp_ready为高)
+
+<img src="..\fig\ME04\ME04_chapter06_fig27.jpg" style="zoom:80%;" />
+
+#### 写操作四个周期返回结果
+
+- 主设备向从设备通过ICB的Command Channel发送写操作请求 (icb_cmd_read为低)
+  - 从设备立即接收该请求 (icb_cmd_ready为高)
+- 从设备在四个周期后返回结果且结果正确 (icb_rsp_err为低)
+  - 主设备立即接收该结果 (icb_rsp_ready为高)
+
+<img src="..\fig\ME04\ME04_chapter06_fig28.jpg" style="zoom:80%;" />
+
+#### 连续四个读操作均四个周期返回结果
+
+- 主设备向从设备通过ICB的Command Channel连续发送四个读操作请求 (icb_cmd_read为高)
+  - 从设备均立即接收该请求 (icb_cmd_ready为高)
+- 从设备在四个周期后连续返回四个读结果
+  - 其中前三个结果正确 (icb_rsp_err为低)
+  - 第四个结果错误 (icb_rsp_err为高)
+  - 主设备均立即接收此四个结果 (icb_rsp_ready为高)
+
+<img src="..\fig\ME04\ME04_chapter06_fig29.jpg" style="zoom:80%;" />
+
+#### 连续四个写操作均四个周期返回结果
+
+- 主设备向从设备通过ICB的Command Channel连续发送四个写操作请求 (icb_cmd_read为低)
+  - 从设备均立即接收该请求 (icb_cmd_ready为高)
+- 从设备在四个周期后连续返回四个写结果
+  - 其中前三个结果正确 (icb_rsp_err为低)
+  - 第四个结果错误 (icb_rsp_err为高)
+  - 主设备均立即接收此四个结果 (icb_rsp_ready为高)
+
+<img src="..\fig\ME04\ME04_chapter06_fig30.jpg" style="zoom:80%;" />
+
+#### 读写混合
+
+- 主设备向从设备通过ICB的Command Channel相继连续发送三个读和写操作请求
+- 从设备立即接收了第一个和第三个请求
+  - 第二个请求第一个周期并没有立即接受 (icb_cmd_ready为低)
+  - 因此主设备一直将地址控制和写数据信号保持不变，直到下一周期该请求被从设备接受 (icb_cmd_ready为高)
+- 从设备对于第一个和第二个请求都是在同一个周期就返回结果且被主设备立即接受
+  - 对于第三个请求则是在下一个周期才返回结果
+  - 主设备还没有立即接受 (icb_rsp_ready为低)
+  - 因此从设备一直将返回信号保持不变，直到下一周期该返回结果被主设备接受
+
+<img src="..\fig\ME04\ME04_chapter06_fig31.jpg" style="zoom:80%;" />
 
 #### ICB总线硬件实现
 
@@ -549,7 +653,7 @@ HBird-E203-SoC开源项目是以Freedom E310 SoC (SiFive公司开源项目)为�
 | PLIC源中断号 |        来源         |
 | :----------: | :-----------------: |
 |      0       | 预留为表示没有中断  |
-|              |       wdogcmp       |
+|      1       |       wdogcmp       |
 |      2       |       rtccmp        |
 |     3, 4     |    uart0, uart1     |
 |   5, 6, 7    | qspi0, qspi1, qspi2 |
@@ -661,3 +765,4 @@ software 				// 存放示例程序的源代码
 prebuilt_tools 	// 存放工具链的目录
 Makefile 				// 主Makefile文件
 ```
+
