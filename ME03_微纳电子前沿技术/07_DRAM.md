@@ -1,4 +1,4 @@
-DRAM
+# DRAM
 
 **主讲人：韩俊峰，祝铖** (Micron)
 
