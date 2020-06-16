@@ -1,7 +1,7 @@
 # Notes
 > My reading notes and class notes in Markdown.
 
- ![Generic badge](https://img.shields.io/badge/Language-markdown-red.svg) 
+ ![Generic badge](https://img.shields.io/badge/Language-markdown-red.svg ![]( https://visitor-badge.glitch.me/badge?page_id= https://github.com/VenciFreeman/Notes )
 
 ## CS
 
@@ -29,7 +29,7 @@
   - `主讲`：[杨卓青]( http://dmne.sjtu.edu.cn/dmne/faculty/teacher/yangzhuoqing/ )
   - `参考`：[*微电子封装技术*]( http://book.sciencereading.cn/shop/book/Booksimple/show.do?id=BD99D97BD2203467AB0D3BC89F988C2DD000 )
   - `作者`：[胡永达]( http://www.ese.uestc.edu.cn/info/5036/8569.htm ), [李元勋]( http://www.ese.uestc.edu.cn/info/5035/7613.htm ), [杨邦朝]( http://upload.xueshu.baidu.com/scholarID/CN-BZ74BGOJ )
-  - [ ] `未完成`
+  - [x] `已完成`
 - 02：[`半导体物理与器件`](https://github.com/VenciFreeman/Notes/tree/master/ME02_半导体物理与器件) 
   - `创建日期`：2020/03/10
   - `主讲`：[付宇卓]( http://dmne.sjtu.edu.cn/dmne/faculty/teacher/fuyuzhuo/ )
@@ -47,19 +47,19 @@
   - `主讲`：[蒋剑飞]( http://ic.sjtu.edu.cn/ic/faculty/jiangjianfei/ ), [毛志刚]( http://ic.sjtu.edu.cn/ic/faculty/maozhigang/ ) 
   - `参考`：[*SoC设计方法与实现*]( https://book.douban.com/subject/6844208/ ), [*RISC-V架构与嵌入式开发快速入门*]( https://book.douban.com/subject/30766751/ )
   - `作者`：[郭炜](  http://school.freekaoyan.com/tj/tju/daoshi/2016/02-03/1454482232483789.shtml  ), [胡振波](  https://www.qixin.com/shareholder/e883a1e68cafe6b3a2/f4c9d5a0-fa9a-4fa5-81bb-60dcaa7e56af  )
-  - [ ] `未完成`
+  - [ ] `已完成`
 - 05：[`集成电路工艺技术课程设计`]( https://github.com/VenciFreeman/Notes/tree/master/ME05_集成电路工艺技术课程设计 )
   - `创建日期`：2020/04/22
   - `主讲`：[黄其煜]( http://ic.sjtu.edu.cn/ic/faculty/maozhigang/ ) 
   - `参考`：—
   - `作者`：—
-  - [ ] `未完成`
+  - [x] `已完成`
 - 06：[`先进微纳加工技术`]( https://github.com/VenciFreeman/Notes/tree/master/ME06_先进微纳加工技术 )
   - `创建日期`：2020/04/22
   - `主讲`：[张丛春]( http://ic.sjtu.edu.cn/ic/faculty/maozhigang/ )
   - `参考`：[*Handbook for Nanofabrication*]( https://books.google.com/books?id=Ks6WCn6nkiwC&printsec=frontcover#v=onepage&q&f=false )
   - `作者`：[Gary Wiederrecht]( https://www.anl.gov/profile/gary-wiederrecht )
-  - [ ] `未完成`
+  - [x] `已完成`
 
 ## PS
 
