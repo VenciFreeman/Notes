@@ -41,13 +41,13 @@
   - `主讲`：[孙亚男]( http://dmne.sjtu.edu.cn/dmne/faculty/teacher/sunyanan/ ), [杨志]( http://dmne.sjtu.edu.cn/dmne/faculty/teacher/yangzhi/ )
   - `参考`：—
   - `作者`：—
-  - [ ] `未完成`
+  - [x] `已完成`
 - 04：[`先进数字系统芯片设计`]( https://github.com/VenciFreeman/Notes/tree/master/ME04_先进数字系统芯片设计 )
   - `创建日期`：2020/04/22
   - `主讲`：[蒋剑飞]( http://ic.sjtu.edu.cn/ic/faculty/jiangjianfei/ ), [毛志刚]( http://ic.sjtu.edu.cn/ic/faculty/maozhigang/ ) 
   - `参考`：[*SoC设计方法与实现*]( https://book.douban.com/subject/6844208/ ), [*RISC-V架构与嵌入式开发快速入门*]( https://book.douban.com/subject/30766751/ )
   - `作者`：[郭炜](  http://school.freekaoyan.com/tj/tju/daoshi/2016/02-03/1454482232483789.shtml  ), [胡振波](  https://www.qixin.com/shareholder/e883a1e68cafe6b3a2/f4c9d5a0-fa9a-4fa5-81bb-60dcaa7e56af  )
-  - [ ] `已完成`
+  - [x] `已完成`
 - 05：[`集成电路工艺技术课程设计`]( https://github.com/VenciFreeman/Notes/tree/master/ME05_集成电路工艺技术课程设计 )
   - `创建日期`：2020/04/22
   - `主讲`：[黄其煜]( http://ic.sjtu.edu.cn/ic/faculty/maozhigang/ ) 
