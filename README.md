@@ -30,7 +30,7 @@
   - `参考`：[*微电子封装技术*]( http://book.sciencereading.cn/shop/book/Booksimple/show.do?id=BD99D97BD2203467AB0D3BC89F988C2DD000 )
   - `作者`：[胡永达]( http://www.ese.uestc.edu.cn/info/5036/8569.htm ), [李元勋]( http://www.ese.uestc.edu.cn/info/5035/7613.htm ), [杨邦朝]( http://upload.xueshu.baidu.com/scholarID/CN-BZ74BGOJ )
   - [x] `已完成`
-- 02：[`半导体物理与器件`](https://github.com/VenciFreeman/Notes/tree/master/ME02_半导体物理与器件) 
+- 02：[`半导体物理学`](https://github.com/VenciFreeman/Notes/tree/master/ME02_半导体物理与器件) 
   - `创建日期`：2020/03/10
   - `主讲`：[付宇卓]( http://dmne.sjtu.edu.cn/dmne/faculty/teacher/fuyuzhuo/ )
   - `参考`：[*Semiconductor Physics and Devices Basic Principles (Fourth Edition)*]( https://easyengineering.net/semiconductor-physics-and-devices-by-donald-neamen-book/ )
@@ -71,6 +71,12 @@
   - `参考`：[*国家建设与政府行为*]( https://book.douban.com/subject/11525224/ )
   - `作者`：[周雪光]( https://sociology.stanford.edu/people/xueguang-zhou )，[刘世定]( http://www.shehui.pku.edu.cn/sz/content.aspx?nodeid=589 )，[折晓叶]( http://nisd.cssn.cn/shfzzlyjy/shfzzlyjy_rcdw/rcdw_yjry/yjry_yjy/201212/t20121224_1823111.shtml )
   - [x] `已完成`
+- 01：[`就业利息和货币通论`](  https://github.com/VenciFreeman/Notes/tree/master/PS01_就业利息和货币通论  )
+  - `创建日期`：2020/08/04
+  - `主讲`：—
+  - `参考`：[*就业、利息和货币通论*]( https://weread.qq.com/web/reader/d6632d705cf769d6646fc55ke4d32d5015e4da3b7fbb1fa )
+  - `作者`：[John Maynard Keynes](  http://en.wikipedia.org/wiki/John_Maynard_Keynes  )
+  - [ ] `未完成`
 
 ## X
 
