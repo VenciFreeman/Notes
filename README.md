@@ -77,6 +77,12 @@
   - `参考`：[*就业、利息和货币通论*]( https://weread.qq.com/web/reader/d6632d705cf769d6646fc55ke4d32d5015e4da3b7fbb1fa )
   - `作者`：[John Maynard Keynes](  http://en.wikipedia.org/wiki/John_Maynard_Keynes  )
   - [ ] `未完成`
+- 02：[`考研政治提纲`](  https://github.com/VenciFreeman/Notes/tree/master/PS02_考研政治提纲  )
+  - `创建日期`：2020/08/09
+  - `主讲`：—
+  - `参考`：
+  - `作者`：
+  - [ ] `未完成`
 
 ## X
 
