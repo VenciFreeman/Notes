@@ -13,6 +13,18 @@
   - `参考`：[*Operating System: Design and Implementation (Third Edition)*]( http://vig.prenhall.com/catalog/academic/product/0,1144,0131429388,00.html )
   - `作者`：[Andrew S. Tanenbaum]( https://www.cs.vu.nl/~ast/ ), [Albert S. Woodhull]( http://minix1.woodhull.com/asw/ )
   - [ ] `未完成`
+- 01：[`深入理解计算机系统`]( https://github.com/VenciFreeman/Notes/tree/master/CS01_深入理解计算机系统 )
+  - `创建日期`：2021/04/12
+  - `主讲`：—
+  - `参考`：[*Computer System: A Programmers Perspective (Third Edition)*]( )
+  - `作者`：[Randal E. Bryant](), [David R. O'Hallaron]()
+  - [ ] `未完成`
+- 02：[`计算机体系结构：量化研究方法`]( https://github.com/VenciFreeman/Notes/tree/master/CS02_计算机体系结构_量化研究方法 )
+  - `创建日期`：2021/04/11
+  - `主讲`：—
+  - `参考`：[*Computer Architecture: A Quantitative Approach (Fifth Edition)*]()
+  - `作者`：[John L. Hennessy](), [David A. Patterson]()
+  - [ ] `未完成`
 
 ## ME
 
@@ -79,10 +91,10 @@
   - [ ] `未完成`
 - 02：[`考研政治提纲`](  https://github.com/VenciFreeman/Notes/tree/master/PS02_考研政治提纲  )
   - `创建日期`：2020/08/09
-  - `主讲`：—
+  - `主讲`：徐涛
   - `参考`：
   - `作者`：
-  - [ ] `未完成`
+  - [x] `已完成`
 
 ## X
 
