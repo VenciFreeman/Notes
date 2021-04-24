@@ -1236,7 +1236,78 @@ rhs = (w./u).*(K1./K0);
 result = lhs - rhs;
 ```
 
+#### 基于塞尔米勒方程的折射率图
 
+```matlab
+% File name: sellmeier.m
+% Plot of refractive index based on Sellmeier equation
+% for Si O_2
+clear all
+N_max = 101;  % number of points for plot
+lambda = linspace(0.5,1.8,N_max);  % creation of lambda arguments
+% between 0.5 and 1.8 microns
+%
+% Data for SiO_2
+G_1 = 0.696749; G_2 = 0.408218; G_3 = 0.890815;
+lambda_1=0.0690606; lambda_2=0.115662; lambda_3=9.900559; % in microns
+%
+term1 = (G_1*lambda.^2)./(lambda.^2 - lambda_1^2);
+term2 = (G_2*lambda.^2)./(lambda.^2 - lambda_2^2);
+term3 = (G_3*lambda.^2)./(lambda.^2 - lambda_3^2);
+ref_index_sq = 1.0 + term1 + term2 + term3;
+ref_index = sqrt(ref_index_sq);
+%
+h = plot(lambda,ref_index,'LineWidth',1.5);
+% Redefine figure properties
+xlabel('wavelength (\mum)','FontSize',14);
+ylabel('refractive index','FontSize',14);
+set(gca,'FontSize',14);  % size of tick marks on both axes
+pause
+close all
+```
+
+#### 材料色散
+
+```matlab
+% File name: disp_mat.m
+% Plots D_mat
+% Material dispersion is determined using Sellmeier equation
+% describing refractive index for pure and doped silica
+% Data from Kasap2001, p.45 for SiO_2 - GeO_2
+clear all
+c_light = 3d5;  % velocity of light, km/s
+disp_min = -20; disp_max =20;
+N_max = 101;  % number of points for plot
+lambda_min = 1.200; lambda_max = 1.600; % in microns
+% creation of lambda arguments between 1.2 and 1.6 microns
+lambda = linspace(lambda_min,lambda_max,N_max);
+G_1 = 0.711040; G_2 = 0.451885; G_3 = 0.704048;
+lambda_1 = 0.0642700; lambda_2 = 0.129408; lambda_3 = 9.425478;
+%
+term1 = (G_1*lambda.^2)./(lambda.^2 - lambda_1^2);
+term2 = (G_2*lambda.^2)./(lambda.^2 - lambda_2^2);
+term3 = (G_3*lambda.^2)./(lambda.^2 - lambda_3^2);
+%
+ref_index_sq = 1.0 + term1 + term2 + term3;
+ref_index = sqrt(ref_index_sq);
+%
+%---------- Determination of material dispersion D_mat -------------
+ttt1 = ref_index;
+dy1_lam = diff(ttt1)./diff(lambda); % first derivative
+lambda1 = lambda(1:length(lambda)-1);
+ttt2 = dy1_lam;
+dy2_lam = diff(ttt2)./diff(lambda1);
+lambda2 = lambda1(1:length(lambda1)-1);
+D_mat = (-lambda2.*dy2_lam/c_light)*1d9;
+plot(lambda2,D_mat,'LineWidth',1.5);
+xlabel('wavelength (\mum)','FontSize',14);
+ylabel('Material dispersion (ps/km nm)','FontSize',14);
+set(gca,'FontSize',14);  % size of tick marks on both axes
+axis([lambda_min, lambda_max, disp_min, disp_max])
+grid on
+pause
+close all
+```
 
 ## 线性脉冲的传播
 
@@ -1252,6 +1323,431 @@ result = lhs - rhs;
 
 ### MATLAB代码
 
+|    函数名     |                       描述                       |
+| :-----------: | :----------------------------------------------: |
+|     rp.m      |                 创建近似矩形脉冲                 |
+|    FT_rp.m    | 用解析表达式和MATLAB函数计算矩形脉冲的傅立叶变换 |
+| super_gauss.m |                  绘制超高斯脉冲                  |
+| gauss_chirp.m |                 绘制啁啾高斯脉冲                 |
+|   ptrain.m    |                 产生高斯脉冲序列                 |
+|   fgauss.m    |                ptrain.m使用的函数                |
+|   bit_gen.m   |                 说明NRZ调制格式                  |
+| pulse_evol.m  |           脉冲的演化 (有啁啾和无啁啾)            |
+|    pdisp.m    |               带色散的高斯脉冲宽度               |
+|   gauss_m.m   |         pdisp.m使用的函数，定义高斯脉冲          |
+|    sslg.m     |          用傅里叶变换分步法演化高斯脉冲          |
+
+#### 创建近似矩形脉冲
+
+```matlab
+% File name: rp.m (rectangular pulse)
+clear all
+N_max = 100;  % number of points for plot
+% Pulse characteristics
+s_0 = 1.0;  % pulse amplitude
+t_min = 2;  % start of pulse
+t_max = 10.0;  % end of pulse
+A = 0.5;
+dt = 1/N_max;
+t = 0:dt:2*t_max;
+x = A*(sign(t-t_min)-sign(t-t_max));  % creates rectangular pulse
+hold on
+h = plot(t,x);
+set(h,'LineWidth',2);
+axis([0 1.2*t_max -0.5 1.7]);  % plots rectangular pulse
+%
+s = 0.0;
+for n = [1 3 5]
+  s = s + 4*s_0/(pi*n)*sin(n*pi*(t-t_min)./(t_max-t_min));
+  h = plot(t,s);
+  set(h,'LineWidth',2);
+end
+axis([0 1.2*t_max -0.5 1.7]);
+xlabel('time (a.u.)','FontSize',14);  % size of x label
+ylabel('s (a.u)','FontSize',14);  % size of y label
+set(gca,'FontSize',14);  % size of tick marks on both axes
+% Add description
+text(5.5, 1.4, 'n = 1','Fontsize',13)
+text(7.0, 1.4, 'n = 3','Fontsize',13)
+text(8.5, 1.4, 'n = 5','Fontsize',13)
+pause
+close all
+```
+
+#### 计算矩形脉冲的傅立叶变换
+
+```matlab
+% File name: FT_rp.m
+% Plots symmetric rectangular pulse of duration tau and its
+% Fourier transform
+clear all
+N_max = 1000;  % number of points for plot
+% Pulse characteristics
+tau = 10.0;  % 1/2 pulse width
+A = 0.5;  % pulse height
+% Plotting Fourier transform of rectangular pulse using analytical formula
+omega = linspace(-20/tau, 20/tau, N_max); % creation of frequency argument
+S = 2*A*sin(tau.*omega)./omega;
+h = plot(omega,S);
+set(h,'LineWidth',1.5);  % thickness of plotting lines
+grid
+xlabel('frequency (a.u.)','FontSize',14);
+ylabel('Fourier transform (S) (a.u.)','FontSize',14);
+set(gca,'FontSize',14);  % size of tick marks on both axes
+text(0.65, 0, 'A','Fontsize',13);
+text(1, 0, 'B','Fontsize',13);
+pause
+close all
+%---- Plotting rectangular pulse -----------------------------------------
+dt = 1/N_max;
+t = -6*tau:dt:6*tau;  % Creation of points for pulse plotting
+s = A*(sign(t+tau)-sign(t-tau));
+h = plot(t,s);
+set(h,'LineWidth',1.5);  % thickness of plotting lines
+axis([-2*tau 2*tau 0 2]);
+xlabel('time (a.u.)','FontSize',14); ylabel('s_r (a.u.)','FontSize',14);
+set(gca,'FontSize',14);  % size of tick marks on both axes
+pause
+close all
+%----- Plotting its Fourier transform using Matlab functions ----------
+y = fft(s);  % discrete Fourier transform
+SM = fftshift(y); % shift zero-frequency component to center of spectrum
+N = length(SM);
+k = -(N-1)/2:(N-1)/2;
+f = abs(SM);
+h = plot(k,f);
+set(h,'LineWidth',1.5);  % thickness of plotting lines
+axis([-4*tau 4*tau -5000 30000]);
+ylabel('Abs FT of rectangular pulse (a.u)','FontSize',14);
+grid
+set(gca,'FontSize',14);  % size of tick marks on both axes
+pause
+close all
+```
+
+#### 绘制超高斯脉冲
+
+```matlab
+% File name: super_gauss.m
+% Plots super-Gaussian pulses
+clear all
+A = 1  ;
+sigma = 30;
+N = 300.0;
+t = linspace(-50,50,N);
+hold on
+for m = [1 2 3 4]
+  p = A/(sigma*sqrt(2*pi))*exp(-t.^(2*m)/(sigma^(2*m)));
+  h = plot(p);
+  set(h,'LineWidth',1.5);  % thickness of plotting lines
+end
+xlabel('time','FontSize',14); ylabel('amplitude','FontSize',14);
+set(gca,'FontSize',14);  % size of tick marks on both axes
+pause
+close all
+Listing 6A.4 Function gauss chirp.m. Generates Gaussian and chirp Gaussian pulses.
+```
+
+
+#### 绘制啁啾高斯脉冲
+
+```matlab
+% File name: gauss_chirp.m
+% Creation of Gaussian pulse and also chirped Gaussian pulse
+clear all;
+%
+t_zero = 20.0;  % center of incident pulse
+width = 6.0;  % width of the incident pulse
+C = 15;  % chirped parameter
+%
+N  = 300.0;
+time = linspace(0,50,N);
+pulse = exp(-0.5*((t_zero - time)/width).^2);  % Gaussian pulse
+pulse_ch = exp(-(0.5+1i*C)*((t_zero - time)/width).^2); % chirped pulse
+%
+subplot (2,1,1), h = plot(time,pulse);
+set(h,'LineWidth',1.5);  % thickness of plotting lines
+title('Gaussian pulse','FontSize',14)
+xlabel('time','FontSize',14); ylabel('amplitude','FontSize',14);
+set(gca,'FontSize',14);  % size of tick marks on both axes
+%
+subplot (2,1,2), h = plot(time,pulse_ch);
+set(h,'LineWidth',1.5);  % thickness of plotting lines
+title('Chirped Gaussian pulse','FontSize',14)
+xlabel('time','FontSize',14); ylabel('amplitude','FontSize',14);
+set(gca,'FontSize',14);  % size of tick marks on both axes
+pause
+close all
+```
+
+
+#### 产生高斯脉冲序列
+
+```matlab
+% File name: ptrain.m
+% Generates train of pulses
+% Allows for overlap of pulses
+clear all
+bits = [0 1 0 1 1 0];  % definition of logical pattern
+T = 1d-9;  % pulse period [s]
+num_pulses = length(bits);  % number of pulses
+N = 1000;  % number of time points
+width = 0.3*T;  % width of pulse
+time=linspace(0,num_pulses*T,N);
+signal = zeros(1,N);
+pulses = zeros(num_pulses,N);
+%
+t_0= T/2;  %position of peak of first impulse in signal
+for i=1:num_pulses
+  if (bits(i)==1)
+    pulses(i,:)= fgauss(time,width,t_0);
+    signal = signal + fgauss(time,width,t_0);
+  end
+  t_0 = t_0 + T;
+end
+%
+subplot (2,1,1); h = plot(time,pulses);
+set(h,'LineWidth',1.5);  % thickness of plotting lines
+xlabel('time','FontSize',14);  % size of x label
+title('Individual pulses','FontSize',14)
+set(gca,'FontSize',14);  % size of tick marks on both axes
+subplot (2,1,2); h = plot(time,signal);
+set(h,'LineWidth',1.5);  % thickness of plotting lines
+xlabel('time','FontSize',14);  % size of x label
+set(gca,'FontSize',14);  % size of tick marks on both axes
+title('Total signal','FontSize',14)
+pause
+close all
+```
+
+```matlab
+function pulse = fgauss(time,width,t_0)
+% function pulse = wave_gauss(t,T_period)
+% Generates individual Gaussian pulse used in the creation of
+% train of pulses
+pulse = exp(-0.5*((t_0 - time)/width).^2);
+```
+
+
+#### 说明NRZ调制格式
+
+```matlab
+% File name: bits_gen.m
+%-----------------------------------------------------------------
+% Purpose:
+% Generates 8-bits long pattern
+% generates single bit which is then repeated 8 times
+% Source
+% R.Sabella and P.Lugli
+% "High Speed Optical Communications"
+% Kluwer Academic Publishers 1999
+% p.32
+%*********************************
+%
+clear all
+bits = [0 1 0 0 1 1 0 1];  % Definition of logical pattern
+%
+T_period = 1d-9;  % pulse period [s]
+I_bias = 2;  % mA
+I_m = 3;  % mA
+tau_r = 0.2*T_period;  % rise time
+%
+% Generation of current pattern corresponding to bit pattern
+I_p = 0;
+N_div = 50;  % number of divisions within each bit interval
+t = linspace(0, T_period, N_div);  % the same time interval is
+% generated for each bit
+%******** first bit *************************************
+  if bits(1)==0,  I_p_1 = I_bias + 0*t;
+  elseif bits(1)==1, I_p_1 = I_bias + I_m + 0*t;
+  end
+%------------------------------------------
+% Generates single, arbitrary bit
+%t = linspace(0, T_period, N_div);
+temp_I = I_p_1;
+%
+number_of_bits = length(bits);
+%
+for k = 2:number_of_bits
+  if bits(k)==1 && bits(k-1)==0
+  	I_p = I_bias + I_m*(1 - exp(-2.2*t./tau_r));
+  elseif bits(k)==0 && bits(k-1)==1
+  	I_p = I_bias + I_m*exp(-2.2*t./tau_r);
+  elseif bits(k)==0 && bits(k-1)==0
+  	I_p = I_bias + 0*t;
+  else bits(k)==1 && bits(k-1)==1
+  	I_p = I_bias + I_m + 0*t;
+  end
+  I_p = [temp_I,I_p];
+  temp_I = I_p;
+end
+temp_t = t;
+for k = 2:number_of_bits
+  t = linspace(0, T_period, N_div);
+  t = [temp_t,(k-1)*T_period+t];
+  temp_t = t;
+end
+%
+x_min = 0;
+x_max = max(t);
+y_min = I_bias;
+y_max = I_bias + 1.2*I_m;
+%
+h = plot(t,I_p);
+grid on
+set(h,'LineWidth',1.5);  % thickness of plotting lines
+xlabel('time [s]','FontSize',14);  % size of x label
+ylabel('Current [mA]','FontSize',14);  % size of y label
+set(gca,'FontSize',14);  % size of tick marks on both axes
+axis([x_min x_max y_min y_max])
+pause
+close all
+```
+
+
+#### 脉冲的演化
+
+```matlab
+% File name: pulse_evol.m
+% Describes evolution of pulse width as a function of normalized
+% distance for chirped and unchirped pulses
+%
+clear all
+% Data
+beta_2 = -20;  % [-20ps^2/km] at 1.55 microns
+T_0 = 200;  % [ps] = 0.2 ns, bit rate 10Gb/s
+L_D = (T_0^2)/abs(beta_2);
+N_max = 401;  % number of points for plot
+x = linspace(0,1.5,N_max);  % normalized distance; x = z/L_D
+%
+hold on
+for C = [-1 0 1 2]  % chirped coefficient
+  T = sqrt((1+sign(beta_2)*C*x).^2 + (x).^2);
+  h = plot(x,T);
+  set(h,'LineWidth',1.5);  % thickness of plotting lines
+end
+% Redefine figure properties
+ylabel('T_1/T_0','FontSize',14)
+xlabel('z/L_D','FontSize',14)
+text(0.35, 1.65, 'C = -1','Fontsize',14)
+text(0.35, 1.2, 'C = 0','Fontsize',14)
+text(0.35, 0.8, 'C = 1','Fontsize',14)
+text(0.35, 0.55, 'C = 2','Fontsize',14)
+set(gca,'FontSize',14);  % size of tick marks on both axes
+pause
+close all
+```
+
+
+#### 带色散的高斯脉冲
+
+```matlab
+% File name: pdisp.m
+% Propagation of Gaussian pulse in the presence of dispersion
+% using Fourier transform
+clear all;
+% Creation of input pulse
+T_0 = 1.0;  % pulse width
+T_s = 0.08;  % sampling period
+t = -4:T_s:4-T_s;  % creation of time interval
+p = gauss_m(t,T_0);
+P=fftshift(fft(p));  % Fourier transform of the original pulse
+Fs=1/64;  % sampling frequency
+N=length(t);  % length of time interval
+f = -N/2*Fs:Fs:N/2*Fs-Fs;  % frequency range
+omega = 2*pi*f;
+% Parameters of optical fiber
+alpha = 0.0;  % losses
+beta_2 = 60.0;  % coefficient beta_2 [ps^2/km]
+%beta_2 = 0.0;  % coefficient beta_2 [ps^2/km]
+beta_3 = 0.01;  % coefficient beta_3 [ps^3/km]
+% Transfer function of optical fiber
+distance = 4000;
+H=exp((alpha/2+1i/2*beta_2*omega.^2+1i/6*beta_3*omega.^3)*distance);
+%
+P_prop = P.*H;  % Fourier transform of final pulse
+p_prop = ifft(fftshift(P_prop)); % time dependence of final pulse
+p_plot = abs(p_prop).^2;
+%
+h = plot(t, p, '.', t, p_plot);
+set(h,'LineWidth',1.5);  % thickness of plotting lines
+xlabel('time','FontSize',14);  % size of x label
+ylabel('Arbitrary units','FontSize',14); % size of y label
+set(gca,'FontSize',14);  % size of tick marks on both axes
+legend('original pulse', 'transmited pulse')
+pause
+close all
+```
+
+```matlab
+function p = gauss_m(t,T_0)
+% Definition of Gaussian and super-Gaussian pulses
+m = 1;  % m=1, usual Gauss; m=3, super-Gauss
+%  m = 3  ;
+p = exp(-t.^(2*m)/(2*T_0^(2*m)));
+```
+
+
+####  用傅里叶变换分步法演化高斯脉冲
+
+```matlab
+% File name: sslg.m
+% Calculates and plots the evolution of a Gaussian pulse in optical fiber
+% using Fast Fourier Transform split-step method with linear terms only
+clear all
+% Input parameters
+N= 32;  % number of points along time axis
+T_domain = 100;  % total time domain kept [in ps]
+beta_2 = 2;  % dispersion coefficient [in ps/nm-km]
+beta_3 = 1.01;
+%
+Delta_t = T_domain/N;  % node spacing in time
+Delta_om = 2*pi/T_domain;  % node spacing in radial frequency
+t = Delta_t*(-N/2:1:(N/2)-1);  % array of time points
+omega = Delta_om*(-N/2:1:(N/2)-1); % array of radial frequency points
+t_FWHM_0 = 20;  % initial pulse FWHM [in ps]
+P_0 = 1;  % initial peak power [in mW]
+A_0 = sqrt(P_0);  % initial amplitude of the Gaussian
+T_0 = t_FWHM_0/(2*sqrt(log(2)));  % initial pulse standard deviation
+gauss = A_0*exp(-t.^2/(2*T_0^2));  % initial Gauss pulse in time
+%
+L_D = 200;
+z_plot = [0 0.25 0.5 0.75 1.0]*L_D; % z-values to plot [in km]
+gauss_F = fftshift(abs(fft(gauss)));% initial Gauss in frequency
+z = 0;  % starting distance
+n = 0;  % controls stepping
+hold on
+for z_val = z_plot  % for selected z-values
+  n = n + 1;  % creates new step
+  % P -propagator function
+  P = exp(((1j/2)*beta_2*(omega.^2)+(1j/6)*beta_3*(omega.^3))*z_val);
+  u_F_z = gauss_F.*P;  % propagation at point z
+  u_z = ifft(u_F_z,N);  % takes inverse Fourier transform
+  u_abs_z = abs(u_z).^2;
+  u = fftshift(u_abs_z);  % shifts frequency components
+  u_3D(:,n) = u';  % create array for 3D plot
+  plot(t,u,'LineWidth',1.5)
+end
+grid on
+xlabel('time [ps]','FontSize',14); ylabel('amplitude','FontSize',14);
+set(gca,'FontSize',14);  % size of tick marks on both axes
+pause
+close all
+%
+% Make 3D plot
+for k = 1:1:length(z_plot)  % choosing 3D plots every step
+  y = z_plot(k)*ones(size(t));  % spread out along y-axis
+  plot3(t,y,u_3D(:,k),'LineWidth',1.5)
+  hold on
+end
+xlabel('time [ps]','FontSize',14); ylabel('distance [km]','FontSize',14);
+set(gca,'FontSize',14);  % size of tick marks on both axes
+grid on
+pause
+close all
+```
+
+
 ## 光源
 
 ### 激光器概述
@@ -1263,6 +1759,244 @@ result = lhs - rhs;
 ### 基于速率方程的分析
 
 ### MATLAB代码
+
+|        函数名        |             描述             |
+| :------------------: | :--------------------------: |
+|    small_signal.m    |          小信号分析          |
+| param_rate_eq_bulk.m | 速率方程中体积有源区域的参数 |
+|   small_epsilon.m    |   带有增益压缩的小信号响应   |
+|  param_rate_eq_QW.m  |  速率方程中QW有源区域的参数  |
+|    large_signal.m    |          大信号分析          |
+|     eqs_large.m      | 定义用于大信号分析的速率方程 |
+
+#### 小信号分析
+
+```matlab
+% File name: small_signal.m
+% Purpose:
+% Determines response function
+clear all
+param_rate_eq_bulk  % input data
+%
+% loop over frequency in GHz
+N_max = 5000;  % number of points for plot
+f_min = 0.01; f_max = 100;
+freq_GHz = linspace(f_min,f_max,N_max); % From 0.1 to 2 GHz
+semilogx(freq_GHz,0);
+%
+freq = freq_GHz*1d9;  % convert frequency to 1/s
+omega = 2*pi*freq;
+%
+hold on
+for power_out = [1d-4 1d-3 0.01 0.1 1.0]  % values of output power [W]
+% Determine steady-state photon density from a given output power
+S_zero = 2*power_out/(v_g*alpha_m*h_Planck*freq_ph*V_p);
+%
+% Construct denominator
+D = - omega.^2 + 1j*omega*(1/tau +v_g*a*S_zero) + v_g*a*S_zero/tau_p;
+%
+response = (v_g*a*S_zero/tau_p)./abs(D);
+response_dB = 10*log(response);
+%
+h = semilogx(freq_GHz,response_dB);
+end
+xlabel('frequency [GHz]','FontSize',14);  % size of x label
+ylabel('Response function [dB]','FontSize',14);  % size of y label
+set(gca,'FontSize',14);  % size of tick marks on both axes
+axis([f_min f_max -20 35]);
+text(0.05, 7, '10 \muW','Fontsize',14)
+text(0.2, 18, '1 mW','Fontsize',14)
+text(0.6, 27, '10 mW','Fontsize',14)
+text(2.5, 33, '0.1W','Fontsize',14)
+text(8, 26, '1W','Fontsize',14)
+pause
+close all
+```
+
+#### 速率方程中体积有源区域的参数
+
+```matlab
+% File name: param_rate_eq_bulk.m
+% Purpose:
+% Contains parameters for rate equation model for bulk
+% active region
+% Source
+% G.P. Agrawal and N.K. Dutta
+% Long-wavelength semiconductor lasers
+% Van Nostrand 1986
+% Table 6.1, p. 227
+%
+% General constants
+c = 3d10;  % velocity of light [cm/s]
+q = 1.6021892d-19;  % elementary charge [C]
+h_Planck = 6.626176d-34;  % Planck constant [J s]
+hbar = h_Planck/(2.0*pi); % Dirac constant [J s]
+% Geometrical dimensions bulk active region
+length = 250d-3;  % cavity length [cm]; 250 microns
+width = 2d-3;  % active region width [cm]; 2 microns
+thickness = 0.2d-3;  % thickness of an active region [cm]; 0.2 microns
+volume_active = length*width*thickness; % volume of active region
+%
+conf = 0.3;  % confinement factor [dimensionless]
+V_p = volume_active/conf; % cavity volume [cm^3]
+ref_index = 3.4;  % effective mode index
+%
+v_g = c/ref_index;  % group velocity [cm/s]
+tau_p = 1.6d-12;  % photon life-time [s]
+tau = 2.2d-9;  % carrier life-time [2.71 ns]
+%
+a = 2.5d-16;  % differential gain (linear model) [cm^2]
+% Parameters needed to determine output power
+alpha_m = 45;  % mirror reflectivity [cm^-1]
+lambda_ph = 1.3d-3;  % laser wavelength [microns]; 1.3 microns
+freq_ph = v_g/lambda_ph;  % phonon frequency
+```
+
+
+#### 带有增益压缩的小信号响应
+
+```matlab
+% File name: small_epsilon.m
+% Purpose:
+% Determines response function for quantum well with epsilon
+clear all
+param_rate_eq_QW  % input data
+%
+% loop over frequency in GHz
+N_max = 100;  % number of points for plot
+f_min = 0.1; f_max = 100;
+freq_GHz = linspace(f_min,f_max,N_max);  % From 0.1 to 2 GHz
+semilogx(freq_GHz,0);  % make axis and force log scale
+%
+freq = freq_GHz*1d9;  % convert frequency to 1/s
+omega = 2*pi*freq;
+power_out = 0.001;  % output power (10 mW/facet)
+%
+hold on
+for epsilon = [0 1.5d-17 5d-17]  % values of epsilon
+% Determine steady-state photon density from a given output power
+S_zero = 2*power_out/(v_g*alpha_m*h_Planck*freq_ph*V_p);
+%
+% Construct denominator
+A = 1/tau + v_g*S_zero*a/(1+epsilon*S_zero);
+B = 1/(conf*tau_p) - (1/(conf*tau_p))*S_zero*epsilon/(1+epsilon*S_zero);
+C = conf*v_g*S_zero*a/(1+epsilon*S_zero);
+D = (1/tau_p)*S_zero*epsilon/(1+epsilon*S_zero);
+damping = A + D;
+omega_R2 = A*D + C*B;
+H = - omega.^2 + 1j*omega.*damping + omega_R2;
+%
+response = (A*D+C*B)./abs(H);
+response_dB = 10*log(response);
+h = plot(freq_GHz,response_dB);
+end
+xlabel('frequency [GHz]','FontSize',14);  % size of x label
+ylabel('Response function [dB]','FontSize',14);  % size of y label
+set(gca,'FontSize',14);  % size of tick marks on both axes
+axis([f_min f_max -20 20]);
+text(2, 13, '\epsilon = 0','Fontsize',14)
+text(2, 10, '\epsilon = 1.5 \times 10^{-17}','Fontsize',14)
+text(2, 7, '\epsilon = 5 \times 10^{-17}','Fontsize',14)
+pause
+close all
+```
+
+
+#### 速率方程中QW有源区域的参数
+
+```matlab
+% File name: param_rate_eq_QW.m
+% Purpose:
+% Contains parameters for rate equation model for QW active region
+% Source
+% L.A. Coldren and S.W. Corzine,
+% "Diode Lasers and Photonic Integrated Circuits", Wiley 1995.
+% General constants
+c = 3d10;  % velocity of light [cm/s]
+q = 1.6021892d-19;  % elementary charge [C]
+h_Planck = 6.626176d-34;  % Planck constant [J s]
+hbar = h_Planck/(2.0*pi); % Dirac constant [J s]
+% Geometrical dimensions
+% QW active region
+L = 250d-4;  % cavity length [cm];  250 microns
+w = 2d-4;  % active region width [cm];  2 microns
+d = 80d-8;  % thickness of an active region [cm]; 80 Angstroms
+%
+%V = L*w*d;
+V = 4d-12;  % volume of active region
+%
+conf = 0.03;  % confinement factor [dimensionless]
+V_p = V/conf;  % cavity volume [cm^3]
+ref_index = 4.2;  % effective mode index
+%
+v_g = c/ref_index;  % group velocity [cm/s]
+tau_p = 2.77d-12;  % photon life-time [s]
+tau = 2.71d-9;  % carrier life-time [s]
+beta_sp = 0.8d-4;  % spontaneous emission factor
+%
+a = 5.34d-16;  % differential gain (linear model) [cm^2]
+N_tr = 1.8d18;  % carrier density at transparency [cm^-3]
+eta_i = 0.8;
+epsilon = 1d-17;
+current_th = 1.11d-3;  % current at threshold [A]; 1.11 mA
+%
+% Parameters needed to determine output power
+alpha_m = 45;  % mirror reflectivity [cm^-1]
+lambda_ph = 1.3d-3;  % laser wavelength [microns]; 1.3 microns
+freq_ph = v_g/lambda_ph;  % phonon frequency
+```
+
+
+#### 大信号分析
+
+```matlab
+% File name: large_signal.m
+% Purpose:
+% Driver which controls computations for large signal rate equations
+% function z = large_signal
+%
+clear all
+tspan = [0 2d-9];  % time interval, up to 2 ns
+y0 = [0, 0];  % initial values of N and S
+%
+[t,y] = ode45('eqs_large',tspan,y0);
+%
+size(t);
+t=t*1d9;
+y_max = max(y);
+y1 = y_max(1);
+y2 = y_max(2);
+h = plot(t,y(:,1)/y1,'-.', t, y(:,2)/y2);  % divided to normalize
+set(h,'LineWidth',1.5);  % thickness of plotting lines
+xlabel('time [ns]','FontSize',14); % size of x label
+ylabel('Arbitrary units','FontSize',14);  % size of y label
+set(gca,'FontSize',14);  % size of tick marks on both axes
+legend('carrier density', 'photon density') % legend inside the plot
+pause
+close all
+```
+
+
+#### 定义用于大信号分析的速率方程
+
+```matlab
+% File name: eqs_large.m
+% Purpose:
+% Large signal rate equations are established
+% N == y(1)
+% S == y(2)
+% assumed linear gain model
+function ydot = eqs_large(t,y)
+%
+param_rate_eq_QW  % input of needed parameters
+%
+current = 3d-2;  % bias current (step function) [A]; 3 mA
+A = v_g*a*(y(1) - N_tr)/(1+epsilon*y(2));
+ydot(1) = eta_i*current/(q*V) - y(1)/tau - A*y(2);
+ydot(2) = conf*A*y(2) - y(2)/tau_p + conf*beta_sp*y(1)/tau;
+ydot = ydot';  % must return column vector
+```
+
 
 ## 光放大器和掺铒光纤放大器 (EDFA)
 
@@ -1298,6 +2032,67 @@ result = lhs - rhs;
 
 ### MATLAB代码
 
+|   函数名    |       描述       |
+| :---------: | :--------------: |
+| min_power.m | 确定最小信号功率 |
+|   berQ.m    |  图的误码率与Q   |
+
+#### 确定最小信号功率
+
+```matlab
+% File name: min_power.m
+% Determines minimum signal power required to give S/N ratio of one
+% for a PIN detector
+clear all
+h_Planck = 6.6261d-34;  % Planck's constant (J s)
+c_light=299.80d6;  % speed of light (m/s)
+k_B= 1.3807d-23;  % Boltzmann constant (J/K)
+e=1.602d-19;  % electron's charge (C)
+%
+C_j = 1d-12;  % junction capacitance (1pF)
+eta = 1;  % quantum efficiency
+lambda = 0.85d-6;  % wavelength (0.85 microns)
+B = 1d6:1d5:1d10;  % range of detector bandwidth
+%
+for T_eff = [500 1000 1500]
+  P_min=(2*h_Planck*c_light/(eta*e*lambda))*sqrt(2*pi*k_B*T_eff*C_j)*B;
+  loglog(B,P_min,'LineWidth',1.5)
+  hold on
+end
+%
+xlabel('Detector bandwidth (Hz)','FontSize',14);
+ylabel('Minimum signal power (W)','FontSize',14);
+text(1d9, 4d-7, '500K','Fontsize',14)
+text(5d7, 4d-7, '1500K','Fontsize',14)
+set(gca,'FontSize',14);  % size of tick marks on both axes
+grid on
+pause
+close all
+```
+
+#### 图的误码率与Q
+
+```matlab
+% File name: berQ.m
+% Plots bit error rate versus Q
+syms x  % defines symbolic variable
+f=(1/sqrt(2*pi))*exp(-x^2/2);  % defines function for plot
+Q_i = 3.5; Q_f = 8; Q_step = 0.5; % defines range and step
+yy = double(int(f,x,Q_i,inf));
+for Q = Q_i+Q_step:Q_step:Q_f
+  y = double(int(f,x,Q,inf));
+  yy = [yy,y];
+end
+Qplot = Q_i:Q_step:Q_f;  % defines Q for plot
+semilogy(Qplot,yy,'LineWidth',1.5)
+xlabel('Q','FontSize',14);
+ylabel('Bit Error Rate','FontSize',14);
+set(gca,'FontSize',14);  % size of tick marks on both axes
+grid on
+pause
+close all
+```
+
 ## 有限差分时域 (FDTD)公式
 
 ### 一般公式
@@ -1326,6 +2121,189 @@ result = lhs - rhs;
 
 ### MATLAB代码
 
+|    函数名     |                描述                |
+| :-----------: | :--------------------------------: |
+|    pbpm.m     |   近轴近似下自由空间中的高斯脉冲   |
+| fd_bpm_free.m | 自由空间高斯脉冲 (Crank-Nicholson) |
+|   bpm_tbc.m   |            透明边界条件            |
+|    prop.m     |  由bpm_btc.m调用的函数，单步执行   |
+
+#### 近轴近似下自由空间中的高斯脉冲
+
+```matlab
+% File name: pbpm.m
+% Propagation of 2D Gaussian pulse by paraxial FT split-step BPM
+clear all N= 10; delta_x = 1/N;
+x = -5:delta_x:5;  % creation of space arguments
+y = -5:delta_x:5;  % creation of space arguments
+delta_z = 5.0;  % step size along z-axis
+delta_n = 0.4; k_zero = 100;
+beta = 20;  % propagation constant
+%
+u_init=(exp(-x.^2))'*exp(-y.^2);  % initial Gaussian pulse
+mesh(x,y,abs(u_init));  % plots original pulse
+pause close all
+%
+k_x = -5:1/N:5;  % creation of Fourier variables
+k_y = -5:1/N:5;  % creation of Fourier variables
+%
+temp = delta_z/(2*beta); H_transfer =
+(exp(1i*temp*k_x.^2))'*(exp(1i*temp*k_y.^2)); H_transfer =
+fftshift(H_transfer); S_phase = exp(-1i*k_zero*delta_n);
+%
+for n=1:100
+  z = fft2(u_init);
+  zz = z.*H_transfer;
+  u_prime = ifft2(zz);
+  u = S_phase.*u_prime;
+  u_init = u;
+end
+%
+mesh(x,y,abs(u_init))  % plots pulse after propagation
+pause close all
+```
+
+#### 自由空间高斯脉冲
+
+```matlab
+% File name: fd_bpm_free.m
+% Propagation of Gaussian pulse in a free space by Crank-Nicholson method
+% No boundary conditions are introduced
+clear all
+L_x=10.0;  % transversal dimension (along x-axis)
+w_0=1.0;  % width of input Gaussian pulse
+lambda = 0.6;  % wavelength
+n=1.0;  % refractive index of the medium
+k_0=2*pi/lambda;  % wavenumber
+N_x=128;  % points on x axis
+Delta_x=L_x/(N_x-1);  % x axis spacing
+h=5*Delta_x;  % propagation step along z-axis
+N_z=100;  % number of propagation steps
+plotting=zeros(N_x,N_z);  % storage for plotting
+x=linspace(-0.5*L_x,0.5*L_x,N_x);  % coordinates along x-axis
+x = x';
+E=exp(-(x/w_0).^2);  % initial Gaussian field
+%
+% beta = n*k_0. With this choice, last term in propagator vanishes
+prefactor = 1/(2*n*k_0*Delta_x^2); main = ones(N_x,1); above =
+ones(N_x-1,1); below = above;
+P = prefactor*(diag(above,-1)-2*diag(main,0)+diag(below,1)); % matrix P
+%
+step_plus = eye(N_x) + 0.5i*h*P;  % step forward
+step_minus =eye(N_x)-0.5i*h*P;  % step backward
+%
+  z = 0; z_plot = zeros(N_z); for r=1:N_z
+  z = z + h  ;
+  z_plot(r) = z + h;
+  plotting(:,r)=abs(E).^2;
+  E=step_plus\step_minus*E;
+end;
+%
+for k = 1:N_z/10:N_z  % choosing 2D plots every 10-th step
+  plot(plotting(:,k),'LineWidth',1.5)
+  set(gca,'FontSize',14);  % size of tick marks on both axes
+  hold on
+end pause close all
+%
+for k = 1:N_z/10:N_z  % choosing 3D plots every 10-th step
+  y = z_plot(k)*ones(size(x));  % spread out along y-axis
+  plot3(x,y,plotting(:,k),'LineWidth',1.5)
+  hold on
+end grid on xlabel('x (mm)','FontSize',14)
+ylabel('z (mm)','FontSize',14)  % along propagation direction
+set(gca,'FontSize',14);  % size of tick marks on both axes
+pause close all
+```
+
+#### 透明边界条件
+
+```matlab
+% File name: bpm_tbc.m
+% Illustrates propagation of Gaussian pulse in a free space
+% using BPM with transparent boundary conditions
+% Operator P is determined in a separate function
+clear all
+L_x=10.0;  % transversal dimension (along x-axis)
+w_0=1.0;  % width of input Gaussian pulse
+lambda = 0.6;  % wavelength
+n=1.0;  % refractive index of the medium
+k_0=2*pi/lambda;  % wavenumber
+N_x=128;  % number of points on x axis
+Delta_x=L_x/(N_x-1);  % x axis spacing
+h=5*Delta_x;  % propagation step
+N_z=100;  % number of propagation steps
+plotting=zeros(N_x,N_z);  % storage for plotting
+x=linspace(-0.5*L_x,0.5*L_x,N_x);  % coordinates along x-axis
+x = x';
+E=exp(-(x/w_0).^2);  % initial Gaussian field
+%
+z = 0  ;
+z_plot = zeros(N_z);
+for r=1:N_z  % BPM stepping
+  z = z + h  ;
+  z_plot(r) = z + h;
+  plotting(:,r)=abs(E).^2;
+  E = step(Delta_x,k_0,h,n,E);  % Propagates pulse over one step
+end;
+%
+for k = 1:N_z/10:N_z  % choosing 2D plots every 10-th step
+  plot(plotting(:,k),'LineWidth',1.5)
+  set(gca,'FontSize',14);  % size of tick marks on both axes
+  hold on
+end
+pause
+close all
+%
+for k = 1:N_z/10:N_z  % choosing 3D plots every 10-th step
+  y = z_plot(k)*ones(size(x));  % spread out along y-axis
+  plot3(x,y,plotting(:,k),'LineWidth',1.5)
+  hold on
+end
+grid on
+xlabel('x','FontSize',14)
+ylabel('z','FontSize',14)  % along propagation direction
+set(gca,'FontSize',14);  % size of tick marks on both axes
+pause
+close all
+```
+
+```matlab
+% File name: step.m
+function E_new = step(Delta_x,k_0,h,n,E_old)
+% Function propagates BPM solution along one step
+N_x = size(E_old,1);  % determine size of the system
+%--- Defines operator P outside of a boundary
+prefactor = 1/(2*n*k_0*Delta_x^2);
+main = ones(N_x,1);
+above = ones(N_x-1,1);
+below = above;
+P = prefactor*(diag(above,-1)-2*diag(main,0)+diag(below,1)); % matrix P
+%
+L_plus = eye(N_x) + 0.5i*h*P;  % step forward
+L_minus = eye(N_x)-0.5i*h*P;  % step backward
+%
+%---- Implementation of boundary conditions
+%
+pref = 0.5i*h/(2*k_0*Delta_x^2);
+k=1i/Delta_x*log(E_old(2)/E_old(1));
+if real(k)<0
+	k=1i*imag(k);
+end;
+left = pref*exp(1i*k*Delta_x);  % left correction for next step
+L_plus(1) = L_plus(1)+left;
+L_minus(1) = L_minus(1)-left;
+%
+k=-1i/Delta_x*log(E_old(N_x)/E_old(N_x-1));
+if real(k)<0
+	k=1i*imag(k);
+end;
+right = pref*exp(1i*k*Delta_x);  % right correction for nest step
+L_plus(N_x) = L_plus(N_x) + right;
+L_minus(N_x) = L_minus(N_x) - right;
+%
+E_new = L_minus\L_plus*E_old;  % determine new solution
+```
+
 ## 一些波分复用 (WDM)设备
 
 ### WDM系统基础
@@ -1351,6 +2329,180 @@ result = lhs - rhs;
 ### 基于滤波功能的光链路模型
 
 ### MATLAB代码
+
+|     函数名     |          描述          |
+| :------------: | :--------------------: |
+| bits_gen_eye.m | 生成高斯脉冲图形和眼图 |
+| rectangular.m  |    矩形脉冲前后滤波    |
+|     link.m     | 光链路 (矩形脉冲)仿真  |
+
+#### 生成高斯脉冲图形和眼图
+
+```matlab
+% File name: bits_gen_eye.m
+% Purpose:
+% Generates 6-bits long pattern of Gaussian pulses with random terms
+% Based on generated sequence, eye diagram is created
+%
+clear all
+bits = [0 1 0 1 0 1];  % def. of bit's sequence
+T_period = 50d-9;  % pulse period [s]
+t_zero = 20d-9;  % center of incident pulse [s]
+width = 6d-9;  % width of the incident pulse [s]
+% Generation of current pattern corresponding to bit pattern
+I_p = 0;
+N_div = 50;  % number of divisions within each bit interval
+t = linspace(0, T_period, N_div);  % the same time interval is
+% generated for each bit
+g = exp(-0.5*((t_zero - t)/width).^2); % def. of a single Gaussian pulse
+%
+if bits(1)==0,  I_p_1 = rand(1)*(1- g); % generates first bit
+elseif bits(1)==1, I_p_1 = rand(1)*g;
+end
+temp = I_p_1;
+number_of_bits = length(bits);
+for k = 2:number_of_bits 	 % generation of remaining bits
+  if bits(k)==1
+    A = rand(1)*g;
+    elseif bits(k)==0, A = rand(1)*(1- g);
+  end
+  A = [temp,A];
+  temp = A;
+end
+temp_t = t;
+for k = 2:number_of_bits
+  t = linspace(0, T_period, N_div);
+  t = [temp_t,(k-1)*T_period+t];
+  temp_t = t;
+end
+%
+h = plot(t,A,'LineWidth',1.5);
+xlabel('time [s]','FontSize',14); % size of x label
+set(gca,'FontSize',14);  % size of tick marks on both axes
+pause
+close all
+%
+%=============== Eye diagram ============================
+% put all bit plots on the first one
+t_eye = linspace(0, T_period, N_div);
+hold on
+for m = 1:number_of_bits
+  A_temp = A((1+(m-1)*N_div):(m*N_div));
+  e = plot(t_eye,A_temp);
+  set(e,'LineWidth',1.5); % thickness of plotting lines
+  set(gca,'FontSize',14);  % size of tick marks on both axes
+end
+pause
+close all
+```
+
+#### 矩形脉冲前后滤波
+
+```matlab
+% File name: rectangular.m
+% Analysis of rectangular pulse after filtering
+%
+clear all
+hwidth = 10;  % half-width of a pulse
+time_step = 0.001;  % time step
+range = 40;
+t = -range:time_step:range;  % time range
+%------ Creation of rectangular pulse -------
+y = (5/2)*(sign(t+hwidth)-sign(t-hwidth));
+plot(t,y,'LineWidth',1.5);
+xlabel('time (a.u','FontSize',14);
+ylabel('Pulse amplitude','FontSize',14);
+set(gca,'FontSize',14);  % size of tick marks on both axes
+axis([-range range 0 6]);
+pause
+% %----- Fourier transform of a rectangular pulse -------
+y_shift = fftshift(fft(y));
+N=length(y_shift);
+n=-(N-1)/2:(N-1)/2;
+%------ Definitions of different filters ------------------
+filter = (1/2)*(sign(n+100)-sign(n-100));
+%filter = exp(-pi*n*0.0001);
+%filter = 0.1*cos(pi*n*0.005).^2;
+%filter = (1 + cos(0.05*n))/2;
+plot(n,filter,'LineWidth',1.5);
+axis([-3*range 3*range 0 1.5]);
+xlabel('Frequency (a.u.)','FontSize',14);
+ylabel('Amplitude','FontSize',14);
+set(gca,'FontSize',14);  % size of tick marks on both axes
+pause
+%-------- Regeneration of signal using filtered output ----------
+y_reg=filter.*y_shift;  % Filter original frequency spectrum
+y_reg_inv=ifft(y_reg);  % Inverse Fourier transform
+plot (t,abs(y_reg_inv),'LineWidth',1.3);
+axis([-range range 0 6]);
+xlabel('Time(a.u.)','FontSize',14);
+ylabel('amplitude','FontSize',14);
+set(gca,'FontSize',14);  % size of tick marks on both axes
+pause
+close all
+```
+
+
+#### 光链路 (矩形脉冲)仿真
+
+```matlab
+% File name: link.m
+% Optical link simulations
+% Follow code on p.133 of S. Geckeler (1983) paper
+% No model of a transmitter
+% No noise
+%
+clear all
+%----------- Pulse produced by transmitter ----------------------
+R_0 = 50d5;  % Bit rate of binary digital signal, 50 Mbit/s
+P_0 = 5d-4;  % Max power of optical pulse, 0.5 mW
+T_0 = 0.7;  % Normalized pulse duration = tau_0/T
+%------------- Fibre parameters -------------------------
+L_1 = 15;  % Fibre length, 15 km
+A_L = 3.0;  % Attenuation coefficient, 3 dB/km
+D_1 = 10^(-A_L*L_1/10);  % Power ratio
+P_1 = P_0*T_0*D_1/2;  % Mean optical power at the end of fibre
+B_L = 5d8;  % Bandwidth-length product, 500 MHz km
+L_C = 10;  % Coupling length of a multimode fibre, 10 km
+B_1 = B_L/L_1 + B_L/(3*L_C);  % Fibre bandwidth
+T_1 = R_0/(2*B_1);
+%-------------- Receiver parameters -------------------------
+T_2 = 0.7;
+%============== System evaluation =======================================
+% Output signal spectrum
+D_F = pi/(20*T_2);
+N = 32;
+f = zeros(1,N);
+f_A = zeros(1,N);
+f_B = zeros(1,N);
+f_C = zeros(1,N);
+H_F = zeros(1,N);
+H_F(1) = 1.0;
+for j = 1:N
+  f(j) = j*D_F;
+  f_A(j) = sin(f(j)*T_0)/(f(j)*T_0);  % transmitter
+  f_B(j) = exp(-f(j)^2*T_1*T_1/pi);  % fibre
+  f_C(j) = (1/2)*(1 + cos(f(j)*T_2));  % receiver
+  H_F(j) = f_A(j)*f_B(j)*f_C(j);
+end
+%
+plot(f,f_A,'.',f,H_F,'LineWidth',1.5)  % Plot signal after propagation
+xlabel('Frequency (a.u.)','FontSize',14);
+set(gca,'FontSize',14);  % size of tick marks on both axes
+pause
+s = ifft(H_F);
+s = s/max(s);
+ff = linspace(0,2/3,N);
+%
+plot(fftshift(abs(s)),'LineWidth',1.5);
+xlabel('time','FontSize',14);
+ylabel('time output function','FontSize',14);
+set(gca,'FontSize',14);  % size of tick marks on both axes
+grid
+pause
+close all
+```
+
 
 ## 光孤子
 
@@ -1398,15 +2550,267 @@ result = lhs - rhs;
 
 ## MATLAB基础
 
-### 基本规则
+### 初步用法
+
+```matlab
+% File name: intro_session.m
+%----------------------- Initialization --------------------------
+clear all
+'its me'  % outputs text on screen
+pause
+d=6;  % assigns value 6 to variable d
+C=[1 2 3; 3 2 1  ; 4 5 6];% defines matrix C
+C
+who  % lists defined matrices
+pause
+whos  % lists the matrices and their sizes
+pause
+%------------------ Colon operator -------------------------------
+x =C( : , 3)  % selects third column of C matrix
+pause
+format long  % shows variables on a screen in a long format
+% format short
+t = 0:0.1:2;
+t  % lists value of t
+pause
+t'  % transpose operator, creates vertical vector
+pause
+%------------- Special values and special matrices -----------------
+pi  % shows the value of pi
+1i
+Inf
+clock  % year, month, day, hour, minute, seconds
+pause
+date  % date in string format
+eps  % the smallest number on my computer
+pause
+A = zeros(4)  % creates 4x4 matrix consisting of zeros
+B = zeros(4,3)  % creates 3x4 matrix consisting of zeros
+pause
+A1 = ones(3)  % creates 3x3 matrix consisting of ones
+B1 = ones(4,3)  % creates 3x4 matrix consisting of ones
+C3=A.*B  % element by element multiplication
+C4=A./B  % element by element division
+C5=A.^B  % element by element exponentiation
+pause
+```
 
 ### MATLAB中良好编程的一些规则
 
+#### 预先声明内存
+
+```matlab
+% File name: memoryMSW.m
+% comparison of execution time with and without memory reservation
+clear all
+% regular loop without memory allocation
+% we use functions tic and toc to measure elapsed time
+N = 10000;
+tic;  % start timer
+n = 0  ;
+for x = 1:N
+n = n + 1  ;
+y(n) = cos(2*pi*x);
+end
+toc  % measure elapsed time since last call to tic
+%
+% the same loop with preallocated memory
+tic
+n = 0  ;
+y =zeros(1,N);
+for x = 1:N
+n = n + 1  ;
+y(n) = cos(2*pi*x);
+end
+toc
+```
+
+#### 矢量循环
+
+```matlab
+% File name: loops.m
+% comparison of execution time for regular loop and vector loop
+clear all
+% regular loop is executed first
+% we use functions tic and toc to measure elapsed time
+tic;  % start timer
+n = 0  ;
+for x = 1:0.1:1000
+n = n + 1  ;
+y(n) = cos(2*pi*x);
+end
+toc  % measure elapsed time since last call to tic
+%
+% the same loop is vectorized below
+tic
+x = 0:0.1:1000;
+y = cos(2*pi*x);
+toc
+```
+
 ### 基本图形
+
+#### 基础二维绘图
+
+```matlab
+x1 = 0:pi/100:2*pi;  % 100 evenly spaced points
+x2 = [0:0.25:2*pi];  % predefined spacing of 0.25
+x3 = linspace(0,2*pi,100); % 100 evenly spaced points
+%
+clear all  % clears all variables in memory
+x = 0:pi/100:2*pi;  % creates array containing independent variable
+y = cos(2*x);  % creates array containing function values
+plot(x,y)  % creates generic plot, without description
+pause  % pause, to view the plot
+close all  % closes all figures
+```
+
+#### 二维绘图
+
+```matlab
+% File name: basic_2D_plot.m
+% Basic plotting of MATLAB are explained.
+clear all
+% Generate data for plot
+n = 100;  % number of plotting points
+x = linspace(0,10,n);  % generates points on x-axis
+y = 3*x;  % function to be plotted
+% Creation of basic plot and adding description
+h = plot(x,y);  % basic plot
+pause  % stop to analyse plot
+title('Plot of function 3*x','FontSize',14)  % adding title
+xlabel('x value','FontSize',14);% adding text on x-axis and size of x label
+ylabel('y value','FontSize',14);% adding text on y-axis and size of y label
+%
+pause(2)  % stop for 2 seconds
+grid  % adding grid
+set(h,'LineWidth',1.5);  % new thickness of plotting lines
+set(gca,'FontSize',14);  % new size of tick marks on both axes
+%
+pause  % final stop
+close all  % closing all windows
+```
+
+```matlab
+% File name: sub_plots.m
+% Creation of subplots with different properties.
+clear all
+% Generate data for plot
+n = 100;  % number of plotting points
+x = linspace(0,10,n);  % generates points on x-axis
+y = 3*x.^2;  % function to be plotted
+subplot(2,2,1)  % division of Figure window
+h1 = plot(x,y);  % basic plot shown in top-left window
+set(gca,'FontSize',10);  % size of tick marks on both axes
+pause  % stop to contemplate effects
+% The above function is now plotted on different log scales
+% and plots are placed in the remaining sub-windows
+subplot(2,2,2)
+h2 = semilogx(x,y);  % log scale on x-axis
+set(gca,'FontSize',14);  % size of tick marks on both axes
+subplot(2,2,3)
+h3 = semilogy(x,y);  % log scale on y-axis
+set(gca,'FontSize',15); subplot(2,2,4)
+h4 = loglog(x,y);  % log scale on both axes
+set(gca,'FontSize',16);  % size of tick marks on both axes
+%
+% Below we set new thicknesses of plotting lines
+set(h1,'LineWidth',1.5); set(h2,'LineWidth',2);
+set(h3,'LineWidth',2.5); set(h4,'LineWidth',3.5);
+pause
+close all
+```
+
+#### 三维绘图
+
+```matlab
+% File name: pview.m
+% Allows multiple 2D plots to be stacked next to one another
+% along one dimension; also provides 3D view of all plots
+clear all
+x = linspace(0,3*pi).';  % x-axis data
+Z = [sin(x) sin(2*x) sin(3*x) sin(4*x)];
+% Code below gives each curve different value on y-axis
+Y = [zeros(size(x)) ones(size(x))/3 (2/3)*ones(size(x)) ones(size(x))];
+plot3(x,Y,Z,'LineWidth',1.5)
+grid on
+xlabel('x','FontSize',14)
+ylabel('y','FontSize',14)
+zlabel('z','FontSize',14)
+set(gca,'FontSize',14);  % size of tick marks on both axes
+view(-40,60)
+pause
+close all
+```
 
 ### 基本输入输出
 
+#### 写入文本文件
+
+```matlab
+% File name: file_write.m
+% open file
+fid = fopen('myfile.txt','wt');  % 'wt' means "write text"
+if (fid < 0)
+error('could not open file "myfile.txt"');
+end;
+for i=1:10  % write to file
+fprintf(fid,'Number = %3d Square = %6d\n',i,i*i);
+end;
+fclose(fid);  % close the file
+```
+
+#### 读入文本文件
+
+```matlab
+% File name: file_read.m
+% open file
+fid = fopen('myfile.txt','rt'); % 'rt' means "read text"
+if (fid < 0)
+error('could not open file "myfile.txt"');
+end;
+% read from file into table with 2 rows and 1 column per line
+out = fscanf(fid,'Number = %d Square = %d\n',[2,inf]);
+fclose(fid);  % close the file
+xx = out';  % convert to 2 columns and 1 row per line.
+xx  % output results to screen
+```
+
 ### 数值微分
+
+```matlab
+% File name: deriv.m
+% Program evaluates first and second derivatives and plots results
+clear all
+font_size = 18;
+N_max = 190;
+x = linspace(0,2,N_max);
+y1 = sin(pi.*x);
+h1 = plot(x,y1);  % plot of original function
+xlabel('x','FontSize',font_size);
+ylabel('Original function','FontSize',font_size);
+grid on
+pause
+%
+temp1 = y1;
+dy1 = diff(temp1)./diff(x);
+xnew1 = x(1:length(x)-1);
+h2 = plot(xnew1,dy1);  % plots first derivative
+xlabel('x','FontSize',font_size);
+ylabel('First derivative','FontSize',font_size);
+grid on
+pause
+%
+temp2 = dy1;
+dy2 = diff(temp2)./diff(xnew1);
+xnew2 = xnew1(1:length(xnew1)-1);
+h3 = plot(xnew2,dy2);  % plots second derivative
+xlabel('x','FontSize',font_size);
+ylabel('Second derivative','FontSize',font_size);
+grid on
+pause
+close all
+```
 
 ## 基本数值方法
 
