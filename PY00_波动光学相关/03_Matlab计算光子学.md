@@ -196,7 +196,7 @@ $$
 I_R+I_T=I_i
 $$
 
-### MATLAB
+### MATLAB代码
 
 |      函数名      |            描述             |
 | :--------------: | :-------------------------: |
@@ -459,66 +459,973 @@ $$
 
 ### 坡印廷定理
 
+### MATLAB代码
+
+|       函数名        |                   描述                   |
+| :-----------------: | :--------------------------------------: |
+| reflections_TE_TM.m |     基于菲涅耳方程绘制TE和TM模的反射     |
+|     bragg_an.m      | 用解析方法绘制TE模布拉格反射镜的反射率谱 |
+
+#### 基于菲涅耳方程的反射图
+
+```matlab
+% reflections_TE_TM.m
+% Plot of reflections based on Fresnel equations
+% TE and TM reflections
+% cases of external reflection
+clear all
+n = 1.50;  % relative refractive index
+N_max = 11;  % number of points for plot
+t = linspace(0,1,N_max);  % creation of theta arguments
+theta = (pi/2)*t;  % angles in radians
+% Plot reflection coefficients
+num_TE = cos(theta) - sqrt(n^2-(sin(theta)).^2 );
+den_TE = cos(theta) + sqrt(n^2-(sin(theta)).^2 );
+r_TE = num_TE./den_TE;  % Plot for TE mode
+num_TM = n^2*cos(theta) - sqrt(n^2-(sin(theta)).^2 );
+den_TM = n^2*cos(theta) + sqrt(n^2-(sin(theta)).^2 );
+r_TM = num_TM./den_TM;  % Plot for TM mode
+%
+angle_degrees = (theta./pi)*180;
+x_line = [0 max(angle_degrees)];  % needed to draw horizontal line
+y_line = [0 0];  % passing through zero
+plot(angle_degrees,r_TE,angle_degrees,r_TM, x_line, y_line, '-',...
+'LineWidth',1.5)
+xlabel('Angle of incidence','FontSize',14)
+set(gca,'FontSize',14);  % size of tick marks on both axes
+text(60, -0.6, 'r_{TE}','Fontsize',14)
+text(60, -0.2, 'r_{TM}','Fontsize',14)
+text(55, 0.1, '\theta_{Brewster}','Fontsize',14)
+pause
+close all
+```
+
+#### 确定TE模式下布拉格反射镜的反射率谱
+
+```matlab
+% File name: bragg_an.m
+% Determines reflectivity spectrum of Bragg mirror for TE mode
+% using analytical method
+clear all
+N = 10;  % number of periods
+n_L = 1.45;  % refractive index
+n_H = 2.25;  % refractive index
+a_L = 259;  % thickness (nm)
+a_H = 167;  % thickness (nm)
+Lambda = a_L + a_H;  % period of the structure
+lambda = 1000:10:2200;
+k_L = 2*pi*n_L./lambda;
+k_H = 2*pi*n_H./lambda;
+%
+a=exp(1i*a_H*k_H).*(cos(k_L*a_L)+(1i/2)*(k_H./k_L+k_L./k_H).*sin(k_L*a_L));
+d=exp(-1i*a_H*k_H).*(cos(k_L*a_L)-(1i/2)*(k_H./k_L+k_L./k_H).*sin(k_L*a_L));
+b = exp(-1i*a_H*k_H).*((1i/2)*(k_L./k_H - k_H./k_L).*sin(k_L*a_L));
+c = exp(1i*a_H*k_H).*((1i/2)*(k_H./k_L - k_L./k_H).*sin(k_L*a_L));
+%
+K = (1/Lambda)*acos((a+d)/2);
+tt = (sin(K*Lambda)./sin(N*K*Lambda)).^2;
+denom = abs(c).^2 + tt;
+R = abs(c).^2./denom;
+plot(lambda,R,'LineWidth',1.5)
+axis([1000 2200 0 1.2])
+xlabel('Wavelenght (nm)','FontSize',14)
+ylabel('Reflectivity','FontSize',14)
+set(gca,'FontSize',14);  % size of tick marks on both axes
+pause
+close all
+```
+
 ## 平板波导
 
-- 射线光学平板波导
+### 射线光学平板波导
 
-- EM介质波导理论基础
+### EM介质波导理论基础
 
-- 波动方程平面波导宽
+### 波动方程平面波导宽
 
-- 三层对称指导结构(TE模式)
+### 三层对称指导结构(TE模式)
 
-- 任意三层非对称平面波导的一维模式
+### 任意三层非对称平面波导的一维模式
 
-- 多层平板波导：一维方法
+### 多层平板波导：一维方法
+
+### MATLAB代码
+
+|    函数名     |        描述         |
+| :-----------: | :-----------------: |
+| b_V_diagram.m | 绘制平面波导的b-V图 |
+|     a3L.m     | 三层平面波导的分析  |
+|  func_asym.m  |   a3L.m使用的函数   |
+
+|   函数名   |                  描述                  |
+| :--------: | :------------------------------------: |
+|   slab.m   | 驱动函数(决定道具。常量和字段配置文件) |
+| lossless.m |          无损耗波导结构的数据          |
+|  lossy.m   |          有损耗的波导结构数据          |
+|  visser.m  |          Visser描述的结构数据          |
+|  muller.m  |              实现穆勒方法              |
+|   f_TE.m   |           建立TE场的超越方程           |
+|  mesh_x.m  |               生成一维网               |
+| refindex.m |      为每个网格点分配参考索引的值      |
+| TE_field.m |          确定所有网格点的TE域          |
+
+```matlab
+% File name: b_V_diagram.m
+% function which plots b-V diagram of a planar slab waveguide
+clear all
+N_max = 400;  % number of points for plot
+b = linspace(0,1.0,N_max);
+hold on
+for nu = [0, 1, 2]
+  for a = [0.0, 8.0,50.0];  % asymmetry coefficient
+    % determine V
+    V1 = atan(sqrt(b./(1-b)) );
+    V2 = atan(sqrt((b+a)./(1.0-b)));
+    V3 = 1./sqrt(1.0-b);
+    V = (nu*pi + V1 + V2).*V3;
+    %
+    plot(V,b,'LineWidth',1.2)
+    grid on
+    axis([0.0 20.0 0.0 1.0])  % change axis limit
+  end
+end
+box on  % makes frame around plot
+xlabel ('V','FontSize',14);
+ylabel('b','FontSize',14);
+set(gca,'FontSize',14);  % size of tick marks on both axes
+text(10, 0.96, '\nu=0','Fontsize',14)
+text(10, 0.8, '\nu=1','Fontsize',14)
+text(10, 0.55, '\nu=2','Fontsize',14)
+%
+text(0.1, 0.3, 'a=0','Fontsize',14)
+text(2.5, 0.3, 'a=50','Fontsize',14)
+%
+text(3.3, 0.2, 'a=0','Fontsize',14)
+text(5.8, 0.2, 'a=50','Fontsize',14)
+%
+text(6, 0.1, 'a=0','Fontsize',14)
+text(8.8, 0.1, 'a=50','Fontsize',14)
+pause
+close all
+```
+
+```matlab
+% File name: a3L.m
+% Analysis for TE modes
+% First, we conduct test plots to find ranges of beta where possible
+% solutions exists. This is done in several steps:
+% 1. Plots are done treating kappa_f as an independent variable
+% 2. Ranges of kappa_f are determined where there are zeros of functions
+% 3. Corresponding ranges of beta are determined
+% 4. Searches are performed to find propagation constants
+%
+clear all
+% Definition of structure
+n_f  = 1.50;  % ref. index of film layer
+n_s  = 1.45;  % ref. index of substrate
+n_c  = 1.40;  % ref. index of cladding
+lambda = 1.0;  % wavelength in microns
+h  = 5.0;  % thickness of film layer in microns
+a_c  = 2*h;  % thickness of cladding region
+a_s  = 2*h;  % thickness of substrate region
+%
+k = 2*pi/lambda;  % wave number
+kappa_f = 0:0.01:3.0;  % establish range of kappa_f
+beta_temp = sqrt((n_f*k)^2 - kappa_f.^2);
+beta_min = min(beta_temp);
+beta_max = max(beta_temp);
+% Before searches, we plot search function versus beta
+beta = beta_min:0.001:beta_max; % establish range of beta
+N = beta./k;
+ff = func_asym(beta,n_c,n_s,n_f,k,h);
+plot(beta,ff)
+xlabel('\beta','FontSize',22);
+ylabel('Search function','FontSize',22);
+ylim([-10.0 10.0])
+grid on
+pause
+close all
+%
+% From the above plot, one must choose proper search range for each mode.
+% Search numbers provided below are only for the waveguide defined above.
+% For different waveguide, one must choose different ranges
+% for searches.
+beta0 = fzero(@(beta) func_asym(beta,n_c,n_s,n_f,k,h),[9.40 9.41])
+beta1 = fzero(@(beta) func_asym(beta,n_c,n_s,n_f,k,h),[9.35 9.37])
+beta2 = fzero(@(beta) func_asym(beta,n_c,n_s,n_f,k,h),[9.27 9.29])
+beta3 = fzero(@(beta) func_asym(beta,n_c,n_s,n_f,k,h),[9.17 9.18])
+% Plot of field profiles
+A_s = 1.0;
+thickness = h + a_c + a_s;
+beta_field = beta0; % Select appropriate propagation constant for plotting
+gamma_s = sqrt(beta_field^2 - (n_s*k)^2);
+gamma_c = sqrt(beta_field^2 - (n_c*k)^2);
+kappa_f = sqrt((n_f*k)^2 - beta_field^2);
+%
+% In the formulas below for electric field E_y we have shifted
+% x-coordinate by a_s
+% We also 'reversed' direction of plot in the substrate region
+NN = 100;
+delta = thickness/NN;
+x = 0.0:delta:thickness;  % coordinates of plot points
+x_t = 0;
+for i=1:NN+1
+  x_t(i+1)= x_t(i) + delta;
+  if (x_t(i)<=a_s);
+  	E_y(i) = A_s*exp(gamma_s*(x_t(i)-a_s));
+  elseif (a_s<=x_t(i)) && (x_t(i)<=a_s+h);
+  	E_y(i) = A_s*(cos(kappa_f*(x_t(i)-a_s))+...
+  	gamma_s*sin(kappa_f*(x_t(i)-a_s))/kappa_f);
+  else (a_s+h<=x_t(i)) & (x_t(i)<=thickness);
+  	E_y(i) = A_s*(cos(kappa_f*h)+gamma_s*sin(kappa_f*h)/kappa_f)...
+  	*exp(-gamma_c*(x_t(i)-h-a_s));
+  end
+end
+%
+h=plot(x,E_y);
+% add text on x-axix and y-axis and size of x and y labels
+xlabel('x (microns)','FontSize',22);
+ylabel('TE electric field','FontSize',22);
+set(h,'LineWidth',1.5);  % new thickness of plotting lines
+set(gca,'FontSize',22);  % new size of tick marks on both axes
+grid on
+pause
+close all
+```
+
+```matlab
+function f = func_asym(beta,n_c,n_s,n_f,k,h)
+% Construction of search function for asymmetric 3-layers waveguide
+%
+gamma_c = sqrt(beta.^2 - (n_c*k)^2);
+gamma_s = sqrt(beta.^2 - (n_s*k)^2);
+kappa_f = sqrt((n_f*k)^2 - beta.^2);
+%
+denom = kappa_f - (gamma_c.*gamma_s)./kappa_f;
+f = tan(kappa_f*h) - (gamma_s+gamma_c)./denom;
+```
+
+```matlab
+% File name: slab.m
+% Driver function which determines propagation constants and
+% electric field profiles (TE mode) for multilayered slab structure
+clear all;
+format long
+% Input structure for analysis (select appropriate input)
+%lossless;
+%lossy;
+visser
+%
+epsilon = 1e-6;  % numerical parameter
+TE_mode = [];
+n_max = max(n_layer);
+z1 = n_max;  % max value of refractive index
+n_min = max(n_s,n_c) + 0.001;  % min value of refractive index
+dz = 0.005;  % iteration step
+mode_control = 0;
+%
+while(z1 > n_min)
+      z0 = z1 - dz;  % starting point for Muller method
+      z2 = 0.5*(z1 + z0);  % starting point for Muller method
+      z_new = muller(@f_TE , z0, z1, z2);
+    if (z_new ~= 0)
+    % verifying for mode existence
+    for u=1 : length(TE_mode)
+      if(abs(TE_mode(u) - z_new) < epsilon)
+        mode_control = 1; break; % mode found
+      end
+    end
+    if (mode_control == 1)
+      mode_control = 0;
+    else
+      TE_mode(length(TE_mode) + 1) = z_new;
+    end
+  end
+z1 = z0;
+end
+%
+TE_mode = sort(TE_mode, 'descend');
+%TE_mode'  % outputs all calculated modes
+beta = TE_mode(2);  % selects mode for plotting field profile
+x = mesh_x(d_s,d_layer,d_c,NumberMesh);
+n_total = [n_s,n_layer,n_c];  % ref index for all layers
+n_mesh = refindex(x,NumberMesh,n_total);
+TE_mode_field = TE_field(beta,n_mesh,x,k_0);
+```
+
+```matlab
+% File name: lossless.m
+% Contains data for lossless waveguide
+% Reference:
+% J. Chilwell and I. Hodgkinson,
+% "Thin-films field-transfer matrix theory of planar multilayer
+% waveguides and reflection from prism-loaded waveguide",
+% J. Opt. Soc. Amer.A, vol.1, pp. 742-753 (1984).
+% Fig.3
+% Global variables to be transferred to function f_TE.m
+%
+global n_c  % ref. index cladding
+global n_layer  % ref. index of internal layers
+global n_s  % ref. index substrate
+global d_c  % thickness of cladding (microns)
+global d_layer  % thicknesses of internal layers (microns)
+global d_s  % thickness of substrate (microns)
+global k_0  % wavenumber
+global NumberMesh  % number of mesh points in each layer
+% (including substrate and cladding)
+n_c  = 1.0;
+n_layer  = [1.66 1.60 1.53 1.66];
+n_s  = 1.5;
+d_c  = 0.5;
+d_layer  = [0.5 0.5 0.5 0.5];
+d_s  = 1.0;
+NumberMesh = [10 10 10 10 10 10];
+lambda  = 0.6328; % wavelength in microns
+k_0  = 2*pi/lambda;
+```
+
+```matlab
+% File name: lossy.m
+% Contains data for lossy waveguide.
+% Reference:
+% C. Chen et al, Proc. SPIE, v.3795 (1999)
+% Global variables to be transferred to function f_TE.m
+global n_c  % ref. index cladding
+global n_layer  % ref. index of internal layers
+global n_s  % ref. index substrate
+global d_c  % thickness of cladding (microns)
+global d_layer  % thicknesses of internal layers (microns)
+global d_s  % thickness of substrate (microns)
+global k_0  % wavenumber
+global NumberMesh  % number of mesh points in each layer
+% (including substrate and cladding)
+n_c  = 1.0;
+n_layer  = [3.16455 3.22534 3.39583 3.5321-1j*0.08817 3.39614 3.38327];
+n_s  = 3.172951;
+d_c  = 1.0;
+d_layer  = [0.6 1.6 0.518 0.6 0.2 0.1];
+d_s  = 1.0;
+NumberMesh = [10 10 10 10 10 10 10 10];
+lambda  = 1.523; % wavelength in microns
+k_0  = 2*pi/lambda;
+```
+
+```matlab
+% File name: visser.m
+% Contains data for five-layer waveguide with gain and losses
+% Reference:
+% T.D. Visser et al, JQE v.31, p.1803 (1995)
+% Fig.6
+% Global variables to be transferred to function f_TE.m
+%
+global n_c  % ref. index cladding
+global n_layer  % ref. index of internal layers
+global n_s  % ref. index substrate
+global d_c  % thickness of cladding (microns)
+global d_layer  % thicknesses of internal layers (microns)
+global d_s  % thickness of substrate (microns)
+global k_0  % wavenumber
+global NumberMesh % number of mesh points in each layer
+% (including substrate and cladding)
+n_c  = 1.0;
+n_layer  = [3.40-1i*0.002 3.60+1i*0.010 3.40-1i*0.002];
+n_s  = 1.0;
+d_s  = 0.4;
+d_layer  = [0.6 0.4 0.6];
+d_c  = 0.5;
+NumberMesh = [10 10 10 10 10];
+lambda  = 1.3; % wavelength in microns
+k_0  = 2*pi/lambda;
+```
+
+```matlab
+function f_val = muller (f, x0, x1, x2)
+% Function implements Muller's method
+iter_max = 100;  % max number of steps in Muller method
+f_tol  = 1e-6;  % numerical parameters
+x_tol = 1e-6;
+y0 = f(x0);
+y1 = f(x1);
+y2 = f(x2);
+iter = 0;
+while(iter <= iter_max)
+  iter = iter + 1;
+  a =( (x1 - x2)*(y0 - y2) - (x0 - x2)*(y1 - y2)) / ...
+  ( (x0 - x2)*(x1 - x2)*(x0 - x1) );
+  %
+  b = ( ( x0 - x2 )^2 * ( y1 - y2 ) - ( x1 - x2 )^2 *  ( y0 - y2 ) ) / .  .  .
+  ( (x0 - x2)*(x1 - x2)*(x0 - x1) );
+  %
+  c = y2;
+  %
+  if (a~=0)
+    D = sqrt(b*b - 4*a*c);
+    q1 = b + D  ;
+    q2 = b - D  ;
+    if (abs(q1) < abs(q2))
+      dx = - 2*c/q2;
+    else
+      dx = - 2*c/q1;
+    end
+    elseif (b~=0)
+      dx = -c/b;
+  else
+    warning('Muller method failed to find a root')
+    break;
+  end
+  x3 = x2 + dx;
+  x0 = x1;
+  x1 = x2;
+  x2 = x3;
+  y0 = y1;
+  y1 = y2;
+  y2 = feval(f, x2);
+  if (abs(dx) < x_tol && abs (y2) < f_tol)
+    break;
+  end
+end
+% Lines below ensure that only proper values are calculated
+if (abs(y2) < f_tol)
+	f_val = x2;
+	return;
+else
+	f_val = 0;
+end
+```
+
+```matlab
+function result = f_TE(z)
+% Creates function used to determine propagation constant
+% Variable description:
+% result - expression used in search for propagation constant
+% z  - actual value of propagation constant
+%
+% Global variables:
+% Global variables are used to transfer values from data functions
+global n_s  % ref. index substrate
+global n_c  % ref. index cladding
+global n_layer  % ref. index of internal layers
+global d_layer  % thicknesses of internal layers (microns)
+global k_0  % wavenumber
+%
+zz=z*k_0;
+NumLayers = length(d_layer);
+%
+% Creation for substrate and cladding
+gamma_sub=sqrt(zz^2-(k_0*n_s)^2);
+gamma_clad=sqrt(zz^2-(k_0*n_c)^2);
+%
+% Creation of kappa for internal layers
+kappa=sqrt(k_0^2*n_layer.^2-zz.^2);
+temp = kappa.*d_layer;
+%
+% Construction of transfer matrix for first layer
+cc = cos(temp);
+ss = sin(temp);
+m(1,1) = cc(1);
+m(1,2) = -1j*ss(1)/kappa(1);
+m(2,1) = -1j*kappa(1)*ss(1);
+m(2,2) = cc(1);
+%
+% Construction of transfer matrices for remaining layers
+% and multiplication of matrices
+for i=2:NumLayers
+  mt(1,1) = cc(i);
+  mt(1,2) = -1j*ss(i)/kappa(i);
+  mt(2,1) = -1j*ss(i)*kappa(i);
+  mt(2,2) = cc(i);
+  m = mt*m;
+end
+%
+result = 1j*(gamma_clad*m(1,1)+gamma_sub*m(2,2))...
+		+ m(2,1) - gamma_sub*gamma_clad*m(1,2);
+```
+
+```matlab
+function x = mesh_x(d_s,d_layer,d_c,NumberMesh)
+% Generates one-dimensional mesh along x-axis
+% Variable description:
+% Input
+% d_layer  - thicknesses of each layer
+% NumberMesh - number of mesh points in each layer
+% Output
+% x  - mesh point coordinates
+%
+d_total = [d_s,d_layer,d_c];  % thicknesses of all layers
+NumberOfLayers = length(d_total); % determine number of layers
+delta = d_total./NumberMesh;  % separation of points for all layers
+%
+x(1) = 0.0;  % coordinate of first mesh point
+i_mesh = 1;
+for k = 1:NumberOfLayers  % loop over all layers
+  for i = 1:NumberMesh(k)  % loop within layer
+    x(i_mesh+1) = x(i_mesh) + delta(k);
+    i_mesh = i_mesh + 1;
+  end
+end
+```
+
+```matlab
+function n_mesh = refindex(x,interface,index_layer)
+% Assigns the values of refractive indices to mesh points
+% in all layers
+% Input
+% x()  -- mesh points coordinates
+% interface(n) -- number of mesh points in layers
+% index_layer() -- refrective index in layers
+% Output
+% index_mesh  -- refractive index for each mesh point
+%
+% Within a given layer, refractive index is assigned the same value.
+% Loop scans over all mesh points.
+% For all mesh points selected for a given layer, the same
+% value of refractive index is assigned.
+%
+N_mesh = length(x);
+NumberOfLayers = length(index_layer);
+%
+i_mesh = 1;
+for k = 1:NumberOfLayers  % loop over all layers
+  for i = 1:interface(k)  % loop within layer
+    n_mesh(i_mesh+1) = index_layer(k);
+    i_mesh = i_mesh + 1;
+	end
+end
+```
+
+```matlab
+function TE_mode_field = TE_field(beta,index_mesh,x,k_zero)
+% Determines TE optical field for all layers
+%
+% x - grid created in mesh_x.m
+TotalMesh = length(x); % total number of mesh points
+%
+zz=beta*k_zero;
+%
+% Creation of constants at each mesh point
+kappa = 0;
+for n = 1:(TotalMesh)
+  kappa(n)=sqrt((k_zero*index_mesh(n))^2-zz^2);
+end
+%
+% Establish boundary conditions in first layer (substrate).
+% Values of the fields U and V are numbered by index not by
+% location along x-axis.
+% For visualization purposes boundary conditions are set at first point.
+U(1) = 1.0;
+temp = imag(kappa(1));
+if(temp<0), kappa(1) = - kappa(1);
+end
+% The above ensures that we get a field decaying in the substrate
+V(1) = kappa(1);
+%
+for n=2:(TotalMesh)
+  cc=cos( kappa(n)*(x(n)-x(n-1)) );
+  ss=sin( kappa(n)*(x(n)-x(n-1)) );
+  m(1,1)=cc;
+  m(1,2)=-1i/kappa(n)*ss;
+  m(2,1)=-1i*kappa(n)*ss;
+  m(2,2)=cc;
+  %
+  U(n)=m(1,1)*U(n-1)+m(1,2)*V(n-1);
+  V(n)=m(2,1)*U(n-1)+m(2,2)*V(n-1);
+end
+%
+TE_mode_field = abs(U);  % Finds Abs(E)
+max_value = max(TE_mode_field);
+h = plot(x,TE_mode_field/max_value); % plot normalized value of TE field
+% adds text on x-axix and size of x label
+xlabel('x (microns)','FontSize',22);
+% adds text on y-axix and size of y label
+ylabel('TE electric field','FontSize',22);
+set(h,'LineWidth',1.5);  % new thickness of plotting lines
+set(gca,'FontSize',22);  % new size of tick marks on both axes
+pause
+close all
+```
 
 ## 线性光纤和信号退化
 
-- 几何光学描述
+### 几何光学描述
 
-- 柱坐标下的光纤模
+### 柱坐标下的光纤模
 
-- 色散
+### 色散
 
-- 传播过程中的脉冲色散
+### 传播过程中的脉冲色散
+
+### MATLAB代码
+
+#### 第一类贝塞尔函数作图
+
+```matlab
+% File name: bessel_J.m
+% Plot of Bessel functions of the first kind J_m(z)
+clear all
+N_max = 101;  % number of points for plot
+z = linspace(0,10,N_max);  % creation of z arguments
+%
+hold on
+for m = [0 1 2]  % m - order of Bessel function
+  J = BESSELJ(m,z);
+  h = plot(z,J);
+% Redefine figure properties
+xlabel('z','FontSize',22);
+ylabel('J_m(z)','FontSize',22);
+text(1.1, 0.85, 'm = 0','Fontsize',18);
+text(1.8, 0.65, 'm = 1','Fontsize',18);
+text(3, 0.55,  'm = 2','Fontsize',18);
+grid on
+box on
+%
+set(h,'LineWidth',1.5);  % new thickness of plotting lines
+set(gca,'FontSize',22);  % new size of tick marks on both axes
+end
+pause
+close all
+```
+
+#### 第二类贝塞尔函数作图
+
+```matlab
+% File name: bessel_Y.m
+% Plot of Bessel functions of the second kind Y_m(z)
+clear all
+N_max = 101;  % number of points for plot
+z = linspace(0.01,10,N_max);  % creation of z arguments
+%
+hold on
+for m = [0 1 2]  % m - order of Bessel function
+Y = BESSELY(m,z);
+h = plot(z,Y);
+% Redefine figure properties
+xlabel('z','FontSize',22);
+ylabel('Y_m(z)','FontSize',22);
+text(2.0, 0.7, 'm = 0','Fontsize',18);
+text(3.5, 0.7, 'm = 1','Fontsize',18);
+text(5.0, 0.7, 'm = 2','Fontsize',18);
+axis([0 10 -5 1.5]);
+grid on
+box on
+%
+set(h,'LineWidth',1.5);  % new thickness of plotting lines
+set(gca,'FontSize',22);  % new size of tick marks on both axes
+end
+pause
+close all
+```
+
+#### 第二类修正贝塞尔函数作图
+
+```matlab
+% File name: bessel_K.m
+% Plot of modified Bessel functions of the second kind K_m(z)
+clear all
+N_max = 101;  % number of points for plot
+z = linspace(0.01,3,N_max);  % creation of z arguments
+%
+hold on
+for m = [0 1 2]  % m - order of Bessel function
+  K = BESSELK(m,z);
+  h = plot(z,K);
+% Redefine figure properties
+xlabel('z','FontSize',22);
+ylabel('K_m(z)','FontSize',22);
+text(0.2, 0.8, 'm = 0','Fontsize',18);
+text(1.0, 0.8, 'm = 1','Fontsize',18);
+text(1.5, 0.8, 'm = 2','Fontsize',18);
+axis([0 3 0 5]);
+grid on
+box on
+%
+set(h,'LineWidth',1.5);  % new thickness of plotting lines
+set(gca,'FontSize',22);  % new size of tick marks on both axes
+end
+pause
+close all
+```
+
+#### 第一类修正贝塞尔函数作图
+
+```matlab
+% File name: bessel_I.m
+% Plot of modified Bessel functions of the first kind I_m(z)
+clear all
+N_max = 101;  % number of points for plot
+z = linspace(0,3,N_max);  % creation of z arguments
+%
+hold on
+for m = [0 1 2]  % m - order of Bessel function
+  Y = BESSELI(m,z);
+  h = plot(z,Y);
+% Redefine figure properties
+xlabel('z','FontSize',22);
+ylabel('I_m(z)','FontSize',22);
+text(1.1, 1.7, 'm = 0','Fontsize',18);
+text(1.75, 1.7, 'm = 1','Fontsize',18);
+text(2.4, 1.7, 'm = 2','Fontsize',18);
+grid on
+box on
+%
+set(h,'LineWidth',1.5);  % new thickness of plotting lines
+set(gca,'FontSize',22);  % new size of tick marks on both axes
+end
+pause
+close all
+```
+
+#### 确定函数并绘制模式HE_11的通用关系
+
+```matlab
+% File name: HE11.m
+% Function determines and plots universal relation for mode HE_11
+clear all
+format long
+% It works in the range of V = [0.50 2.4]
+N_max = 190;
+for n = 1:N_max
+  VV(n) = 0.50 + n*0.01;
+  V = VV(n);
+  b_c(n) = fzero(@(b) func_HE11(b,V),[0.0000001 0.8]);
+end
+%
+hold on
+h1 = plot(VV,b_c);  % plots b =b(V)
+%
+temp1 = VV.*b_c;
+dy1 = diff(temp1)./diff(VV);
+Vnew1 = VV(1:length(VV)-1);
+h2 = plot(Vnew1,dy1);  % plots first derivative
+%
+temp2 = dy1;
+dy2 = diff(temp2)./diff(Vnew1);
+Vnew2 = Vnew1(1:length(Vnew1)-1);
+h3 = plot(Vnew2,Vnew2.*dy2);  % plots second derivative
+%
+text(2.3, 0.6, 'b','Fontsize',16);
+text(1.8, 1.2, '{d(bV)}/{dV}','Fontsize',16);
+text(0.25, 1.3, 'V{d^{2}(bV)}/{dV^{2}}','Fontsize',16);
+axis([0 2.5 0 1.5]);
+% Redefine figure properties
+xlabel('V','FontSize',22);
+grid on
+box on
+set(h1,'LineWidth',1.5);  % new thickness of plotting lines
+set(h2,'LineWidth',1.5);
+set(h3,'LineWidth',1.5);
+set(gca,'FontSize',22);  % new size of tick marks on both axes
+pause
+close all
+```
+
+#### 定义基本关系的函数
+
+```matlab
+function result = func_HE11(b,V)
+% Function name: func_HE11.m
+% Function which defines basic relation
+u= V*sqrt(1-b);
+J1 = BESSELJ(1,u);
+J0 = BESSELJ(0,u);
+%
+w = V*sqrt(b);
+K1 = BESSELK(1,w);
+K0 = BESSELK(0,w);
+lhs = J1./J0;
+rhs = (w./u).*(K1./K0);
+result = lhs - rhs;
+```
+
+
 
 ## 线性脉冲的传播
 
-- 基本脉冲
+### 基本脉冲
 
-- 半导体激光器的调制
+### 半导体激光器的调制
 
-- 有色散时脉冲传播方程的简单推导
+### 有色散时脉冲传播方程的简单推导
 
-- 线性脉冲的数学理论
+### 线性脉冲的数学理论
 
-- 脉冲的传播
+### 脉冲的传播
+
+### MATLAB代码
 
 ## 光源
 
-- 激光器概述
+### 激光器概述
 
-- 半导体激光器
+### 半导体激光器
 
-- 速率方程
+### 速率方程
 
-- 基于速率方程的分析
+### 基于速率方程的分析
+
+### MATLAB代码
 
 ## 光放大器和掺铒光纤放大器 (EDFA)
 
-- 一般特性
+### 一般特性
 
-- 掺铒光纤放大器
+### 掺铒光纤放大器
 
-- 掺铒光纤放大器的增益特性
+### 掺铒光纤放大器的增益特性
+
+### MATLAB代码
 
 ## 半导体光放大器(SOA)
 
-- 一般讨论
+### 一般讨论
 
-- 脉冲传播的SOA速率方程
+### 脉冲传播的SOA速率方程
 
-- SOA的设计
+### SOA的设计
 
-- SOA的一些应用
+### SOA的一些应用
+
+### MATLAB代码
+
+## 光学接收器
+
+### 主要特性
+
+### 光电探测器
+
+### 接收器分析
+
+### 光电接收器建模
+
+### MATLAB代码
+
+## 有限差分时域 (FDTD)公式
+
+### 一般公式
+
+### 无离差的一维Yee实现
+
+### 一维边界条件
+
+### 无离差的二维Yee实现
+
+### 二维吸收边界条件
+
+### 离差
+
+### MATLAB代码
+
+## 光束传播法 (BPM)
+
+### 近轴公式
+
+### 一般理论
+
+### 1+1维FD-BPM公式
+
+### 结束语
+
+### MATLAB代码
+
+## 一些波分复用 (WDM)设备
+
+### WDM系统基础
+
+### WDM基础技术
+
+### BPM在光子器件中的应用
+
+### MATLAB代码
+
+## 光链路
+
+### 光通信系统
+
+### 光链路
+
+### 的设计
+
+### 链路性能的测量
+
+### 光纤作为线性系统
+
+### 基于滤波功能的光链路模型
+
+### MATLAB代码
+
+## 光孤子
+
+### 非线性光学极化率
+
+### 主要非线性效应
+
+### 非线性薛定谔方程的推导
+
+### 分步傅里叶方法
+
+### 数值结果
+
+### 关于孤子通信的几点评论
+
+### MATLAB代码
+
+## 太阳能电池
+
+### 简介
+
+### 光伏发电原理
+
+### 太阳能电池等效电路
+
+### 多结结构
+
+### MATLAB代码
+
+## 超材料
+
+### 简介
+
+### Veselago方法
+
+### 如何创造超材料
+
+### 超材料的一些应用
+
+### 具有活性元素的超材料
+
+### MATLAB代码
+
+# 附录
+
+## MATLAB基础
+
+### 基本规则
+
+### MATLAB中良好编程的一些规则
+
+### 基本图形
+
+### 基本输入输出
+
+### 数值微分
+
+## 基本数值方法
+
+### 一元牛顿法
+
+### 穆勒方法
+
+### 数值微分
+
+### 龙格-库塔 (RK)方法
+
+### 解微分方程
+
+### 数值积分
+
+### MATLAB中的符号集成
+
+### 傅里叶级数
+
+### 傅里叶变换
+
+### FFT
