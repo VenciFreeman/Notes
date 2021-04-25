@@ -1,5 +1,7 @@
 # Matlab_计算光子学
 
+[toc]
+
 ## 绪论
 
 ### 什么是光子学
@@ -235,6 +237,8 @@ pause
 close all
 ```
 
+![相速度绘图](../fig/PY00/PY00_chapter03_fig06.jpg)
+
 #### 群速度绘图
 
 ```matlab
@@ -269,6 +273,8 @@ pause
 close all
 ```
 
+![](../fig/PY00/PY00_chapter03_fig07.jpg)
+
 #### 法布里-珀罗标准具透射比绘图
 
 ```matlab
@@ -299,6 +305,8 @@ text(8.5, 0.8, 'r = 0.2','Fontsize',14)
 pause
 close all
 ```
+
+![](../fig/PY00/PY00_chapter03_fig08.jpg)
 
 ## 电磁学基本知识
 
@@ -500,6 +508,8 @@ pause
 close all
 ```
 
+![](../fig/PY00/PY00_chapter03_fig09.jpg)
+
 #### 确定TE模式下布拉格反射镜的反射率谱
 
 ```matlab
@@ -534,6 +544,8 @@ set(gca,'FontSize',14);  % size of tick marks on both axes
 pause
 close all
 ```
+
+![](../fig/PY00/PY00_chapter03_fig10.jpg)
 
 ## 平板波导
 
@@ -608,6 +620,8 @@ text(8.8, 0.1, 'a=50','Fontsize',14)
 pause
 close all
 ```
+
+![](../fig/PY00/PY00_chapter03_fig11.jpg)
 
 ```matlab
 % File name: a3L.m
@@ -692,6 +706,8 @@ grid on
 pause
 close all
 ```
+
+![](../fig/PY00/PY00_chapter03_fig12.jpg)
 
 ```matlab
 function f = func_asym(beta,n_c,n_s,n_f,k,h)
@@ -1266,6 +1282,8 @@ pause
 close all
 ```
 
+![](../fig/PY00/PY00_chapter03_fig13.jpg)
+
 #### 材料色散
 
 ```matlab
@@ -1308,6 +1326,8 @@ grid on
 pause
 close all
 ```
+
+![](../fig/PY00/PY00_chapter03_fig14.jpg)
 
 ## 线性脉冲的传播
 
@@ -1374,6 +1394,8 @@ pause
 close all
 ```
 
+![](../fig/PY00/PY00_chapter03_fig15.jpg)
+
 #### 计算矩形脉冲的傅立叶变换
 
 ```matlab
@@ -1425,6 +1447,8 @@ pause
 close all
 ```
 
+![](../fig/PY00/PY00_chapter03_fig16.jpg)
+
 #### 绘制超高斯脉冲
 
 ```matlab
@@ -1448,6 +1472,7 @@ close all
 Listing 6A.4 Function gauss chirp.m. Generates Gaussian and chirp Gaussian pulses.
 ```
 
+![](../fig/PY00/PY00_chapter03_fig17.jpg)
 
 #### 绘制啁啾高斯脉冲
 
@@ -1480,6 +1505,7 @@ pause
 close all
 ```
 
+![](../fig/PY00/PY00_chapter03_fig18.jpg)
 
 #### 产生高斯脉冲序列
 
@@ -1528,6 +1554,7 @@ function pulse = fgauss(time,width,t_0)
 pulse = exp(-0.5*((t_0 - time)/width).^2);
 ```
 
+![](../fig/PY00/PY00_chapter03_fig19.jpg)
 
 #### 说明NRZ调制格式
 
@@ -1604,6 +1631,7 @@ pause
 close all
 ```
 
+![](../fig/PY00/PY00_chapter03_fig20.jpg)
 
 #### 脉冲的演化
 
@@ -1638,6 +1666,7 @@ pause
 close all
 ```
 
+![](../fig/PY00/PY00_chapter03_fig21.jpg)
 
 #### 带色散的高斯脉冲
 
@@ -1687,6 +1716,7 @@ m = 1;  % m=1, usual Gauss; m=3, super-Gauss
 p = exp(-t.^(2*m)/(2*T_0^(2*m)));
 ```
 
+![](../fig/PY00/PY00_chapter03_fig22.jpg)
 
 ####  用傅里叶变换分步法演化高斯脉冲
 
@@ -1747,6 +1777,7 @@ pause
 close all
 ```
 
+![](../fig/PY00/PY00_chapter03_fig23.jpg)
 
 ## 光源
 
@@ -1813,6 +1844,8 @@ pause
 close all
 ```
 
+![](../fig/PY00/PY00_chapter03_fig24.jpg)
+
 #### 速率方程中体积有源区域的参数
 
 ```matlab
@@ -1852,6 +1885,7 @@ lambda_ph = 1.3d-3;  % laser wavelength [microns]; 1.3 microns
 freq_ph = v_g/lambda_ph;  % phonon frequency
 ```
 
+![](../fig/PY00/PY00_chapter03_fig25.jpg)
 
 #### 带有增益压缩的小信号响应
 
@@ -2070,6 +2104,8 @@ pause
 close all
 ```
 
+![](../fig/PY00/PY00_chapter03_fig26.jpg)
+
 #### 图的误码率与Q
 
 ```matlab
@@ -2142,7 +2178,8 @@ beta = 20;  % propagation constant
 %
 u_init=(exp(-x.^2))'*exp(-y.^2);  % initial Gaussian pulse
 mesh(x,y,abs(u_init));  % plots original pulse
-pause close all
+pause
+close all
 %
 k_x = -5:1/N:5;  % creation of Fourier variables
 k_y = -5:1/N:5;  % creation of Fourier variables
@@ -2160,7 +2197,8 @@ for n=1:100
 end
 %
 mesh(x,y,abs(u_init))  % plots pulse after propagation
-pause close all
+pause
+close all
 ```
 
 #### 自由空间高斯脉冲
@@ -2185,8 +2223,7 @@ x = x';
 E=exp(-(x/w_0).^2);  % initial Gaussian field
 %
 % beta = n*k_0. With this choice, last term in propagator vanishes
-prefactor = 1/(2*n*k_0*Delta_x^2); main = ones(N_x,1); above =
-ones(N_x-1,1); below = above;
+prefactor = 1/(2*n*k_0*Delta_x^2); main = ones(N_x,1); above = ones(N_x-1,1); below = above;
 P = prefactor*(diag(above,-1)-2*diag(main,0)+diag(below,1)); % matrix P
 %
 step_plus = eye(N_x) + 0.5i*h*P;  % step forward
@@ -2203,7 +2240,9 @@ for k = 1:N_z/10:N_z  % choosing 2D plots every 10-th step
   plot(plotting(:,k),'LineWidth',1.5)
   set(gca,'FontSize',14);  % size of tick marks on both axes
   hold on
-end pause close all
+end
+pause
+close all
 %
 for k = 1:N_z/10:N_z  % choosing 3D plots every 10-th step
   y = z_plot(k)*ones(size(x));  % spread out along y-axis
@@ -2212,8 +2251,11 @@ for k = 1:N_z/10:N_z  % choosing 3D plots every 10-th step
 end grid on xlabel('x (mm)','FontSize',14)
 ylabel('z (mm)','FontSize',14)  % along propagation direction
 set(gca,'FontSize',14);  % size of tick marks on both axes
-pause close all
+pause
+close all
 ```
+
+![](../fig/PY00/PY00_chapter03_fig27.jpg)
 
 #### 透明边界条件
 
@@ -2396,6 +2438,10 @@ pause
 close all
 ```
 
+![](../fig/PY00/PY00_chapter03_fig28.jpg)
+
+![](../fig/PY00/PY00_chapter03_fig29.jpg)
+
 #### 矩形脉冲前后滤波
 
 ```matlab
@@ -2442,6 +2488,11 @@ pause
 close all
 ```
 
+![](../fig/PY00/PY00_chapter03_fig30.jpg)
+
+![](../fig/PY00/PY00_chapter03_fig33.jpg)
+
+![](../fig/PY00/PY00_chapter03_fig34.jpg)
 
 #### 光链路 (矩形脉冲)仿真
 
@@ -2503,6 +2554,9 @@ pause
 close all
 ```
 
+![](../fig/PY00/PY00_chapter03_fig31.jpg)
+
+![](../fig/PY00/PY00_chapter03_fig32.jpg)
 
 ## 光孤子
 
