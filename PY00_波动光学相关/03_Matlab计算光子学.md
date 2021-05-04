@@ -93,8 +93,7 @@
     $$
     sinθ=\frac{n_2}{n_1}
     $$
-    
-
+  
 - 棱镜
   
 - 只关注薄透镜：可以忽略光线穿过透镜时的垂直平动
@@ -2143,7 +2142,49 @@ close all
 
 ## 光束传播法 (BPM)
 
+> 集成光学中研究光传播的最有力的技术
+>
+> - 用于亥姆霍兹方程的数值解
+> - 用于非线性薛定谔方程的数值解
+>
+> 
+>
+> - 
+> - 传播器是数学上的“对象”，它将场从一个空间坐标传播到另一个空间坐标
+> - 最初基于FFT算法，后来扩展到基于有限差分的BPM方案 (FD-BPM)和有限元BPM方案 (FE-BPM)
+
 ### 近轴公式
+
+#### 单色波的波动方程
+
+$$
+\frac{\part^2E}{\part x^2}+\frac{\part^2E}{\part y^2}+\frac{\part^2E}{\part z^2}+k^2(x,y,z)=0\\
+k(x,y,z)=k_0\vec{n}(x,y,z):空间相关的波数\\
+k_0=2\pi/\lambda:自由空间的波数
+$$
+
+$$
+E(x,y,z)=u(x,y,z)e^{-j\beta z}\\
+\beta:代表特征传播波向量的常数，\beta=\vec{n}_0\omega/c\\
+\vec{n}_0:参考折射率\\
+\beta:场E的平均相位变化，即传播常数
+$$
+
+#### 菲涅尔近似
+
+$$
+2i\beta\frac{\part u}{\part z}=\frac{\part^2u}{\part x^2}+\frac{\part^2u}{\part y}+(k^2-\beta^2)u
+$$
+
+- 描述非均匀介质 (如光波导)中电场 (或磁场)演化的起点
+- 没有描述极化效应
+
+上式也可以表示为
+$$
+2j\beta\frac{\part u}{\part z}=\widehat{D}u+\widehat{W}u\\
+其中\widehat{D}=\frac{1}{2j\beta}(\frac{\part^2}{\part x^2}+\frac{\part^2}{\part y^2})\\
+$$
+
 
 ### 一般理论
 
